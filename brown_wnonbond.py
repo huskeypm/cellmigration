@@ -176,6 +176,7 @@ def runBD(
       if "trajOutName" in key:
           raise RuntimeError(key+" is now deprecated. Use outName instead")
       print("Adding %s="%(key) , auxParams[key])
+
     
   # place particles 
   # TODO: start w preequilibrated box or get cells from expt 
@@ -397,6 +398,8 @@ if __name__ == "__main__":
       display=True
     if(arg=="-yamlFile"):
       yamlFile= sys.argv[i+1]
+    if(arg=="-outName"):
+      params.paramDict["outName"]=sys.argv[i+1]
 
     #
     # Run modes 
