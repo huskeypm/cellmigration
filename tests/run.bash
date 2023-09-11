@@ -5,7 +5,7 @@ export EXEC="python3 /home/ekrueger2/source/cellmigration/brown_wnonbond.py"
 #$EXEC -yamlFile "crowder_EK.yaml" -run
 #python3 brown_wnonbond.py -yamlFile "crowder_EK2.yaml" -run
 
-prefix=crowder_EK_25_crowders
+prefix=crowder_EK_49_crowders
 
 for i in {1..10}
 do
