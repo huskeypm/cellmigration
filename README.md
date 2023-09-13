@@ -63,7 +63,9 @@ python3 tests/brown.py -yamlFile FILE.yaml -run
 - code will also generate pdb/dcd files. These can be opened using vmd
 -- VMD: load test.pdb. Right click entry in GUI. Select Load Data Into Molecule. Select dcd
 - Lastly, if you know what you're doing, you can use the processYaml file
+```
  python processYaml.py -yaml tests/expt.yaml
+```
 This will print all of the parameters in csv format as well as an output yaml file
 
 
