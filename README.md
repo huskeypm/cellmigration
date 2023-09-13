@@ -62,6 +62,9 @@ python3 tests/brown.py -yamlFile FILE.yaml -run
 - Trajectory files like test.pkl can be opened and analyzed using the notebook bd_sims.ipynb in ./tests. Note that an example for computing mean square displacements (MSD) is provided therein. 
 - code will also generate pdb/dcd files. These can be opened using vmd
 -- VMD: load test.pdb. Right click entry in GUI. Select Load Data Into Molecule. Select dcd
+- Lastly, if you know what you're doing, you can use the processYaml file
+ python processYaml.py -yaml tests/expt.yaml
+This will print all of the parameters in csv format as well as an output yaml file
 
 
 ## TODO

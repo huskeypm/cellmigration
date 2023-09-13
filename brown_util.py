@@ -37,7 +37,8 @@ def CalcVolFrac(
 def CalcMSD(     
   ts,
   msds,
-  outName=None
+  outName=None,
+  display=True
   ):     
   """
   ts - len(ts) = num frames from microscope (assuming 1/min) 
@@ -47,8 +48,6 @@ def CalcMSD(
   #print(ts[-1])
 
   # display rmsd
-  display = False
-  display = True
   # exp data later 
   adjTime = 1.
   texp = ts*adjTime
