@@ -45,6 +45,10 @@ python3 -c "import simtk"
 ```
 python3 tests/brown.py -validation 
 ```
+or
+```
+python3 brown_wnonbond.py -validation 
+```
 
 
 - The program is customized using parameters that are loaded in 'yaml' format. The syntax for calling the code with FILE.yaml is
