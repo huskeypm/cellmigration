@@ -50,6 +50,11 @@ or
 python3 brown_wnonbond.py -validation 
 ```
 
+- To see the list of parameters used:
+```
+python3 brown_nonbond.py -printVar
+```
+
 
 - The program is customized using parameters that are loaded in 'yaml' format. The syntax for calling the code with FILE.yaml is
 ```

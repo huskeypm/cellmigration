@@ -44,6 +44,7 @@ def WriteYaml(contents, fileName):
   # write fitness and best params to file
   with open (fileName, 'w') as file:
     documents = yaml.dump(contents, file)
+  print("Created yaml file ",fileName)
 
 ##
 ##
@@ -63,11 +64,14 @@ vals = IterValues(daKey)
 
 for val in vals:
   val = float(val) 
-  print(val) 
+  #print(val) 
   outParams = auxParams.copy()
-  outParams['nParticles'] = val
-  keyName="_%s%f"%(key,val)
+  outParams[daKey] = val
+  keyName="_%s%f"%(daKey,val)
+  outParams['outName']=auxParams['outName']+keyName
   writeName = "out"+keyName+".yaml"
+
+
   yaml.safe_dump(outParams, sort_keys=False)
-  #WriteYaml(outParams,writeName)
+  WriteYaml(outParams,writeName)
   
