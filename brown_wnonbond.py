@@ -196,7 +196,8 @@ def runBD(
 
   newCrowderPos = np.shape(crowderPos)[0]
   if (newCrowderPos != nCrowders):
-    print("WARNING: increasing nCrowders to the nearest 'square-rootable' value")
+    print("WARNING: increasing nCrowders to the nearest 'square-rootable' value: %d"
+            %newCrowderPos)
     nCrowders = newCrowderPos 
 
   nTot = nParticles + nCrowders

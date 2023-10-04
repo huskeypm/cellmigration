@@ -32,7 +32,16 @@ python3 process.py -yamlFile FILEN.yaml -run
 ##
 import yaml
 yamlFile='template.yaml'
-cmd = "python3 brown_wnonbond.py -yamlFile "
+yamlFile='template_crowders.yaml'
+cmd = "python3 ../brown_wnonbond.py -yamlFile "
+
+keys=['nParticles']
+keys=['nCrowders']
+varIter=5 # range of key values
+runs=3    # number of time each condition is run 
+path="./"   # path for outfiles 
+date="231004"
+path="/home/pkh-lab-shared/migration/"+date+"/"   # path for outfiles 
 
 
 ##
@@ -44,7 +53,7 @@ def IterValues(key,nIter=3):
   # scales parameter by 0.5 to 2 
   scales = 2**np.linspace(-1,1,nIter)
   vals=dflt * scales 
-  print(vals) 
+  print(key,vals) 
   return vals 
 
 def WriteYaml(contents, fileName,verbose=True):
@@ -64,17 +73,10 @@ with open(yamlFile, 'r') as file:
 for key in auxParams.keys():
   print(key,auxParams[key])
 
-keys=['nParticles']
-varIter=5 # range of key values
-runs=3    # number of time each condition is run 
-path="./"   # path for outfiles 
-date="231004"
-path="/home/pkh-lab-shared/migration/"+date+"/"   # path for outfiles 
 
 
 daKey = keys[0]
-
-vals = IterValues(daKey,nIter=3)
+vals = IterValues(daKey,nIter=varIter)
 
 # over params 
 for val in vals:

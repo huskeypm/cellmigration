@@ -20,12 +20,23 @@ class empty:pass
 #######
 # user defined for now 
 path="/home/pkh-lab-shared/migration/231004/"
-condVals =[10,20,40]
-trajNames = [
+key="nParticles"
+if 0:
+  condVals =[10,20,40]
+  trajNames = [
         "expt_nParticles10.000000",
         "expt_nParticles20.000000",
         "expt_nParticles40.000000"
         ]
+condVals =[9,16,25,32]
+key="nCrowders"
+trajNames = [
+  "crwd_nCrowders8.000000",
+  "crwd_nCrowders16.000000",
+  "crwd_nCrowders22.627417",
+  "crwd_nCrowders32.000000"
+]
+
 iters=3
 ########
 equilFrame = 400
@@ -82,12 +93,12 @@ for trajName in trajNames:
 
 df = pd.DataFrame(
         {'trajName':trajNames,
-         'nParticles':condVals,  
+         key:condVals,  
          'D':Ds,
          'Dstd':Dstds
         })
 
-outCsv = path+"/test.csv"
+outCsv = path+"/"+key+".csv"
 print("printed %s"%outCsv)
 df.to_csv(outCsv)               
 
