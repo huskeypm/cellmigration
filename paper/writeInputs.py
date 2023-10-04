@@ -27,10 +27,17 @@ python3 process.py -yamlFile FILEN.yaml -run
 '''
 
 
+##
+## PARAMS 
+##
 import yaml
 yamlFile='template.yaml'
+cmd = "python3 brown_wnonbond.py -yamlFile "
 
 
+##
+## Func 
+##
 
 def IterValues(key,nIter=3):
   dflt = auxParams[daKey] 
@@ -40,14 +47,15 @@ def IterValues(key,nIter=3):
   print(vals) 
   return vals 
 
-def WriteYaml(contents, fileName):
+def WriteYaml(contents, fileName,verbose=True):
   # write fitness and best params to file
   with open (fileName, 'w') as file:
     documents = yaml.dump(contents, file)
-  print("Created yaml file ",fileName)
+  if verbose:
+    print("Created yaml file ",fileName)
 
 ##
-##
+## MAIN 
 ##
 
 with open(yamlFile, 'r') as file:
@@ -57,21 +65,31 @@ for key in auxParams.keys():
   print(key,auxParams[key])
 
 keys=['nParticles']
+varIter=5 # range of key values
+runs=3    # number of time each condition is run 
+path="./"   # path for outfiles 
+date="231004"
+path="/home/pkh-lab-shared/migration/"+date+"/"   # path for outfiles 
+
 
 daKey = keys[0]
 
-vals = IterValues(daKey)
+vals = IterValues(daKey,nIter=3)
 
+# over params 
 for val in vals:
   val = float(val) 
   #print(val) 
   outParams = auxParams.copy()
   outParams[daKey] = val
-  keyName="_%s%f"%(daKey,val)
-  outParams['outName']=auxParams['outName']+keyName
-  writeName = "out"+keyName+".yaml"
 
-
-  yaml.safe_dump(outParams, sort_keys=False)
-  WriteYaml(outParams,writeName)
+ 
+  # over iter
+  for run in range(runs):
+    keyName="_%s%f_%.2d"%(daKey,val,run)
+    outParams['outName']=path+"/"+auxParams['outName']+keyName
+    writeName = path+"/"+"out"+keyName+".yaml"
+    yaml.safe_dump(outParams, sort_keys=False)
+    WriteYaml(outParams,writeName,verbose=False)
+    print(cmd+writeName+" -run")
   
