@@ -183,8 +183,8 @@ def runBD(
     
   # place particles 
   # TODO: start w preequilibrated box or get cells from expt 
-  nParticles = paramDict["nParticles"] 
-  nCrowders = paramDict["nCrowders"] 
+  nParticles = int(paramDict["nParticles"])
+  nCrowders = int(paramDict["nCrowders"])
 
 
   import lattice 
@@ -276,7 +276,7 @@ def runBD(
   if display:
     CustomForce.plot(ax=plt.gca())
   
-  nUpdates = paramDict["nUpdates"]
+  nUpdates = int(paramDict["nUpdates"])
   totTime = nUpdates *  paramDict["frameRate"]  # [1 min/update]
 
   ts = np.arange(nUpdates)/float(nUpdates) * totTime             

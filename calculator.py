@@ -448,6 +448,7 @@ def genPDBWrapper(
     This is a wrapper for Ben's PDB writer, siunce I needed something simple.
     Later I can revise his code to accept coordinates; currently they're randomized 
     """
+    #print(startingPositions) 
     PDBgenNoPBC(pdbFileName,nCellsType1,nCellsType2,0,0,"None",startingPositions=startingPositions)
     
 
