@@ -72,8 +72,10 @@ def WriteIterativeYaml(auxParams,daKey,varIter=3):
     val = float(val) 
     #print(val) 
     outParams = auxParams.copy()
-    outParams[daKey] = val
   
+    # give a tag to determine which value was iterated
+    outParams['tag']=daKey
+    outParams[daKey] = val
    
     # over iter
     for run in range(runs):
@@ -145,7 +147,8 @@ if __name__ == "__main__":
       main(yamlFile=yamlFileNoCrwd, keys=['nParticles','cellRad','cellAttr'])
       quit()
     elif(arg=="-fig5"):
-      main(yamlFile=yamlFileWCrwd, keys=['nCrowders','crowderRad','xScale'])
+      #main(yamlFile=yamlFileWCrwd, keys=['nCrowders','crowderRad','xScale'])
+      main(yamlFile=yamlFileWCrwd, keys=['nCrowders','crowderRad'])
       print("if xScale, xPotent=True") 
       quit()
     elif(arg=="-fig6"):
