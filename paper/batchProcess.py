@@ -2,16 +2,18 @@
 import matplotlib.pylab as plt
 import numpy as np
 
-# pip3 install pytraj
 import pytraj as pt
 
 
 # In[5]:
 
 
-# insert and load the names of the pkl files that you made using the yamlFile to change the parameters
+# insert and load the names of the pdb/dcd files that you made using the yamlFile to change the parameters
 # calculate the mean square displacements for each pkl file
 # plot the simulated trajectories of the particles
+'''
+Probably want to merge in processYaml to grab job info 
+'''
 
 
 cases=dict()

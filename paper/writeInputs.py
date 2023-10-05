@@ -1,28 +1,34 @@
 import numpy as np
 '''
-diam, eps, conc, +/- ATP 
-crowderSize, attract
 
 
 This is a script that will read a template file (cleverly
 called a template.yaml) and vary a given field from 50-200%,
 then print a list of yaml outputs 
 
-You can run a bunch via listing each in -another- bash file:
+* You can run a bunch via listing each in -another- bash file:
 
 python3 brown_wnonbond.py -yamlFile FILE1.yaml -run
 python3 brown_wnonbond.py -yamlFile FILE2.yaml -run
 ....
 python3 brown_wnonbond.py -yamlFile FILEN.yaml -run
 
-Similarly, the outputs can be processed (to yield D coefficients, etc) 
+* The jobs can be processed en masse using 
+batchProcess.py 
+
+* Or, the outputs can be processed (to yield D coefficients, etc) 
 
 python3 process.py -yamlFile FILE1.yaml -run
 python3 process.py -yamlFile FILE2.yaml -run
 ....
 python3 process.py -yamlFile FILEN.yaml -run
 
-
+* To implement
+- diam [cellRad | crowderRad?] 
+- eps [yScale/yDiam - tricky, since attraction needs to be applied i mjust a narrow region; might be easier w crowders] 
+- conc [nParticles, DONE] 
+- +/- ATP [xScale] 
+- attract [cellAttr, crowderAttr]
 
 '''
 
@@ -31,12 +37,8 @@ python3 process.py -yamlFile FILEN.yaml -run
 ## PARAMS 
 ##
 import yaml
-yamlFile='template.yaml'
-yamlFile='template_crowders.yaml'
 cmd = "python3 ../brown_wnonbond.py -yamlFile "
 
-keys=['nParticles']
-keys=['nCrowders']
 varIter=5 # range of key values
 runs=3    # number of time each condition is run 
 path="./"   # path for outfiles 
@@ -66,32 +68,106 @@ def WriteYaml(contents, fileName,verbose=True):
 ##
 ## MAIN 
 ##
-
-with open(yamlFile, 'r') as file:
-  auxParams = yaml.safe_load(file)
-
-for key in auxParams.keys():
-  print(key,auxParams[key])
-
-
-
-daKey = keys[0]
-vals = IterValues(daKey,nIter=varIter)
-
-# over params 
-for val in vals:
-  val = float(val) 
-  #print(val) 
-  outParams = auxParams.copy()
-  outParams[daKey] = val
-
- 
-  # over iter
-  for run in range(runs):
-    keyName="_%s%f_%.2d"%(daKey,val,run)
-    outParams['outName']=path+"/"+auxParams['outName']+keyName
-    writeName = path+"/"+"out"+keyName+".yaml"
-    yaml.safe_dump(outParams, sort_keys=False)
-    WriteYaml(outParams,writeName,verbose=False)
-    print(cmd+writeName+" -run")
+def main(): 
+  with open(yamlFile, 'r') as file:
+    auxParams = yaml.safe_load(file)
   
+  for key in auxParams.keys():
+    print(key,auxParams[key])
+  
+  
+  
+  daKey = keys[0]
+  vals = IterValues(daKey,nIter=varIter)
+  
+  # over params 
+  for val in vals:
+    val = float(val) 
+    #print(val) 
+    outParams = auxParams.copy()
+    outParams[daKey] = val
+  
+   
+    # over iter
+    for run in range(runs):
+      keyName="_%s%f_%.2d"%(daKey,val,run)
+      outParams['outName']=path+"/"+auxParams['outName']+keyName
+      writeName = path+"/"+"out"+keyName+".yaml"
+      yaml.safe_dump(outParams, sort_keys=False)
+      WriteYaml(outParams,writeName,verbose=False)
+      print(cmd+writeName+" -run")
+    
+#!/usr/bin/env python
+import sys
+##################################
+#
+# Revisions
+#       10.08.10 inception
+#
+##################################
+
+#
+# ROUTINE  
+#
+def doit(fileIn):
+  1
+
+
+#
+# Message printed when program run without arguments 
+#
+def helpmsg():
+  scriptName= sys.argv[0]
+  msg="""
+Purpose: 
+ 
+Usage:
+"""
+  msg+="  %s -validation" % (scriptName)
+  msg+="""
+  
+ 
+Notes:
+
+"""
+  return msg
+
+#
+# MAIN routine executed when launching this script from command line 
+#
+if __name__ == "__main__":
+  import sys
+  msg = helpmsg()
+  remap = "none"
+
+  if len(sys.argv) < 2:
+      raise RuntimeError(msg)
+
+  yamlFileNoCrwd='template.yaml'
+  yamlFileWCrwd='template_crowders.yaml'
+  keys=['nParticles']
+
+  # Loops over each argument in the command line 
+  for i,arg in enumerate(sys.argv):
+    # calls 'doit' with the next argument following the argument '-validation'
+    if(arg=="-fig4"):
+      main(yamlFile=yamlFileNoCrwd, keys=['nParticles','cellRad','cellAttr'])
+    elif(arg=="-fig5"):
+      main(yamlFile=yamlFileWCrwd, keys=['nCrowders','crowderRad','xScale'])
+      print("if xScale, xPotent=True") 
+    elif(arg="-fig6"):
+      main(yamlFile=yamlFileWCrwd, keys=['yScale','ySize'])                      
+      print("yscale stuff needs implemented; mainly to vary width of channel like dumbbell shape") 
+      print("if yScale|ySize, yPotent=True") 
+      print("consder just using crowders" ) 
+  
+
+
+
+
+
+  raise RuntimeError("Arguments not understood")
+
+
+
+
