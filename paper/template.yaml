@@ -1,5 +1,8 @@
 nCrowders: 1   
+crowderRad: 10.  # [um]
 nParticles: 20  # adjust me to mirror exptl data 
+cellRad: 0.1    # [um] cell radius  (seems too small) 
+cellAttr: 1.   # [] attraction between crowder and cell (vdw representation)
 nUpdates: 320 # to match with exptl number of frames 
 friction:   2 # [1/ps] (time is in no relation to expt, treat as unitless here)
 xPotential: False   # [True/False]
