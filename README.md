@@ -77,6 +77,7 @@ This will print all of the parameters in csv format as well as an output yaml fi
 ## TODO
 - RESOLVED There is some kind of problem with the z-constraint. Compare brown_wnonbond.py z coordinates relative to openmuller.py in the tests directory 
 - PBCs in Y direction should be added 
+- implement flux calculation 
 - piecewise continuous functions? (this doesn't appear to be supported 
 
 #TOFIX

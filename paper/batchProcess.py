@@ -64,7 +64,13 @@ for trajName in trajNames:
     except:
       raise RuntimeError("You're likely missing a file like %s"%dcd) 
 
-    # get rmsd 
+    ## get flux 
+    # for each particle, get dx in all directions, provide dt as input
+    # select particles in some neighborhood of y=0?
+    # grab dx along flux direction
+    # sum(dx) / delta y 
+    
+    ## get rmsd 
     mask='@RC'
     rmsdAll = pt.rmsd(traj, mask='@RC', ref=0)
     rmsd = rmsdAll[equilFrame:]
@@ -82,6 +88,7 @@ for trajName in trajNames:
 
   # x**2 = 4*D*t
   #      = slope * t ==> D = slope/4.
+  print("MOVE ME INTO LOOP ABOVE") 
   iDs =  np.asarray( slopes )/4.
 
   case = empty()
