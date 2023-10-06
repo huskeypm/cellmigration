@@ -4,7 +4,7 @@ import brown_util as bu
 import yaml 
 
 
-def process(params):
+def processPKL(params):
   #print(params.keys())
   #trajOutName = "./tests/crowder.pkl"
   trajOutName=params['outName']+".pkl"
@@ -34,7 +34,7 @@ def doit(yamlFile):
   file.close()
 
   # get D 
-  D = process(auxParams)
+  D = processPKL(auxParams)
 
   # write 
   outParams = auxParams.copy()
