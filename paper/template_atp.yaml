@@ -6,7 +6,7 @@ cellAttr: 1.   # [] attraction between crowder and cell (vdw representation)
 nUpdates: 320 # to match with exptl number of frames 
 friction:   2 # [1/ps] (time is in no relation to expt, treat as unitless here)
 xPotential: True    # [True/False]/applied along x-direction
-xScale: 0.1        # scale for chemoattractant gradient (when xpotential is true)  
+xScale: 0.3      # scale for chemoattractant gradient (when xpotential is true)  
 yPotential: False # [True/False] 
 outName: atp
 

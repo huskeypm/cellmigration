@@ -9,9 +9,10 @@ def processPKL(params):
   #trajOutName = "./tests/crowder.pkl"
   trajOutName=params['outName']+".pkl"
   
-  ts,xs,ys, nUpdates, nParticles = bu.LoadPKLData(trajOutName)
+  ts,xs,ys, nUpdates, nParticles =bu.LoadPKLData(trajOutName)
+  bu.PlotFinalPosition(xs,ys,params['outName']+"_posn.png")
   msds = bu.meanSquareDisplacements(xs,ys,nUpdates)
-  texp, msdfit,D=bu.CalcMSD(ts,msds)
+  texp, msdfit,D=bu.CalcMSD(ts,msds,outName=params['outName']+".png",display=True)
   D=D[0]
   return D 
 
@@ -62,7 +63,7 @@ Purpose:
  
 Usage:
 """
-  msg+="  %s -validation" % (scriptName)
+  msg+="  %s -yaml  <filename>" % (scriptName)
   msg+="""
   
  

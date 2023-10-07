@@ -7,7 +7,7 @@ def PlotStuff(
   ts,
   outName=None
   ):     
-  print("PLOTSTUFF has been renamed; use CalcMSD instead\n") 
+  raise RuntimeError("PLOTSTUFF has been renamed; use CalcMSD instead\n") 
   CalcMSD(ts,msds,outName=outName)
 
 def meanSquareDisplacements(xs, ys, nUpdates):
@@ -74,6 +74,27 @@ def CalcMSD(
       plt.savefig(outName)       
 
   return texp,msdfit,D 
+
+
+def PlotFinalPosition(xs,ys,outName=None):
+    sx=xs[:,0] 
+    sy=ys[:,0]
+    plt.scatter(sx,sy,label='start')
+    fx=xs[:,-1]
+    fy=ys[:,-1]
+    plt.scatter(fx,fy,label='final')
+
+    coms=np.array([np.mean(sx),np.mean(sy)])
+    comf=np.array([np.mean(fx),np.mean(fy)])
+    #print(coms, comf)
+    dist = (comf - coms)**2
+    dist = np.sqrt( np.sum(dist) )
+    plt.title("COM displacement %f"%dist)
+
+
+    if outName is None:
+        outName = "out.png"
+    plt.gcf().savefig(outName)
 
     
 
