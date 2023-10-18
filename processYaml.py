@@ -88,6 +88,7 @@ if __name__ == "__main__":
   #  1
   #  #print "arg"
 
+  raise RunTimeError("look at batch process and merge in stuff from here") 
   # Loops ovyer each argument in the command line 
   for i,arg in enumerate(sys.argv):
     # calls 'doit' with the next argument following the argument '-validation'

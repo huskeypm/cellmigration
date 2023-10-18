@@ -81,7 +81,7 @@ def WriteIterativeYaml(auxParams,daKey,varIter=3):
     for run in range(runs):
       keyName="_%s%f_%.2d"%(daKey,val,run)
       outParams['outName']=path+"/"+auxParams['outName']+keyName
-      writeName = path+"/"+"out"+keyName+".yaml"
+      writeName = outParams['outName']+".yaml"
       yaml.safe_dump(outParams, sort_keys=False)
       WriteYaml(outParams,writeName,verbose=False)
       print(cmd+writeName+" -run")
@@ -137,7 +137,9 @@ if __name__ == "__main__":
       raise RuntimeError(msg)
 
   yamlFileNoCrwd='template.yaml'
+  yamlFileNoCrwdATP='template_atp.yaml'
   yamlFileWCrwd='template_crowders.yaml'
+  yamlFileWCrwdATP='template_crowders_atp.yaml'
   keys=['nParticles']
 
   # Loops over each argument in the command line 
@@ -145,11 +147,12 @@ if __name__ == "__main__":
     # calls 'doit' with the next argument following the argument '-validation'
     if(arg=="-fig4"):
       main(yamlFile=yamlFileNoCrwd, keys=['nParticles','cellRad','cellAttr'])
+      main(yamlFile=yamlFileNoCrwdATP, keys=['nParticles','cellRad','cellAttr'])
       quit()
     elif(arg=="-fig5"):
       #main(yamlFile=yamlFileWCrwd, keys=['nCrowders','crowderRad','xScale'])
-      main(yamlFile=yamlFileWCrwd, keys=['nCrowders','crowderRad'])
-      print("if xScale, xPotent=True") 
+      main(yamlFile=yamlFileWCrwd, keys=['nCrowders','crowderRad','crowderAttr'])
+      main(yamlFile=yamlFileWCrwdATP, keys=['nCrowders','crowderRad','crowderAttr'])
       quit()
     elif(arg=="-fig6"):
       main(yamlFile=yamlFileWCrwd, keys=['yScale','ySize'])                      
