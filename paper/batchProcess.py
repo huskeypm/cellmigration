@@ -85,7 +85,7 @@ def GetFlux(traj, mask='@RC',display=False):
 
   return JA         
 
-def GetD(traj,mask='@RC',csvName=None):
+def CalcD(traj,mask='@RC',csvName=None):
   rmsdAll = pt.rmsd(traj, mask='@RC', ref=0)
   rmsd = rmsdAll[equilFrame:]
   tEnd = np.shape(rmsd)[0]
@@ -113,6 +113,20 @@ def GetD(traj,mask='@RC',csvName=None):
   Di = slope/4.
   return Di 
 
+# assumes cylindrical inclusions 
+def CalcVolFrac(auxParams): 
+  d = auxParams['domainDim']
+  n = auxParams['nCrowders']
+  r = auxParams['crowderRad']
+
+  volFrac = d*d - n*np.pi*r*r  # since domain is square
+  print(d)
+  print(n,r)
+  print(n*np.pi*r*r)
+  volFrac /= d*d                
+
+  return volFrac 
+
 # casename should include full path 
 def ProcessTraj(caseName,display=False): 
     # load
@@ -125,7 +139,7 @@ def ProcessTraj(caseName,display=False):
 
     ## get D    
 
-    Di=GetD(traj,mask='@RC',csvName=caseName)                        
+    Di=CalcD(traj,mask='@RC',csvName=caseName)                        
     JA=GetFlux(traj,mask='@RC',display=display)
     print("Di %f J %f"%(Di,JA))
     return Di,JA 
@@ -160,6 +174,11 @@ def doit(figName,yamlNamePrefix="*",single=False):
       # get output name 
       trajName = auxParams['outName']                   
       print(trajName) 
+
+      # compute vol frac
+      volFrac = CalcVolFrac(auxParams)
+      print(volFrac)
+      quit()
 
       #trajNames.append(trajName) 
       # get 'tag'
