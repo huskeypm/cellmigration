@@ -20,6 +20,7 @@ class empty:pass
 #######
 # user defined for now 
 path="/home/pkh-lab-shared/migration/231004/"
+#path=""
 
 ########
 equilFrame = 400
@@ -35,6 +36,7 @@ def GetFlux(traj, mask='@RC',display=False):
 # select particles in some neighborhood of y=0?
 # grab dx along flux direction
 # sum(dx) / delta y
+  numFrames = (np.shape(traj.xyz))[0]
 
   ## get cells 
   indices = pt.select_atoms(traj.top, mask) 
@@ -42,8 +44,21 @@ def GetFlux(traj, mask='@RC',display=False):
   # xyz: frames, natoms, coords
   #print(traj.xyz[2,:,0])
   xThresh = -0.
+
+  
+  plt.figure()
+  diffs = traj.xyz[-1,indices,0] 
+  diffs -= traj.xyz[0,indices,0] 
+  #print(traj.xyz[0,indices,0])
+  #print(traj.xyz[-1,indices,0])
+  plt.hist(diffs)
+  plt.gcf().savefig("diffs.png") 
+  
+
+
   
   # below Thresh (only need to track one 'compartment' for now since we are dividing the space into two sections
+  # along x direction 
   #l =np.array(traj.xyz[:,0,0] < xThresh, dtype=int) 
   #r =np.array(traj.xyz[:,0,0] >=xThresh, dtype=int) 
   #print(np.sum(l),np.sum(r))
@@ -62,7 +77,7 @@ def GetFlux(traj, mask='@RC',display=False):
   #plt.plot(x,y)
   #plt.gcf().savefig("testxy.png") 
   if display:
-    print(l[0],l[-1],np.sum(fluxArea),np.average(fluxArea)*320) # 320 frames 
+    print(l[0],l[-1],np.sum(fluxArea),np.average(fluxArea)*numFrames) # 320 frames 
     plt.plot(l,label="#particles in x<thresh")     
     plt.plot(fluxArea,label="flux*area")
     plt.legend(loc=0)
@@ -70,7 +85,7 @@ def GetFlux(traj, mask='@RC',display=False):
 
   return JA         
 
-def GetD(traj,mask='@RC'):
+def GetD(traj,mask='@RC',csvName=None):
   rmsdAll = pt.rmsd(traj, mask='@RC', ref=0)
   rmsd = rmsdAll[equilFrame:]
   tEnd = np.shape(rmsd)[0]
@@ -81,6 +96,17 @@ def GetD(traj,mask='@RC'):
   #plt.plot(rmsd)
   #plt.plot(ts,ts*slope+intercept)
   #
+
+  if csvName is not None:
+    dim = np.shape(rmsd)[0]
+    csv = np.reshape(np.zeros(dim*2),[dim,2])
+    csv[:,0] = ts
+    csv[:,1] = rmsd
+    np.savetxt(csvName+".csv",csv)   
+
+    plt.figure()
+    plt.plot(ts,rmsd)
+    plt.gcf().savefig(csvName+".png")
 
   # x**2 = 4*D*t
   #      = slope * t ==> D = slope/4.
@@ -95,30 +121,37 @@ def ProcessTraj(caseName,display=False):
       traj = pt.iterload(dcd,pdb)
     except:
       raise RuntimeError("You're likely missing a file like %s"%dcd)
+    print("Loaded %s"%dcd)
 
     ## get D    
 
-    Di=GetD(traj,mask='@RC')
+    Di=GetD(traj,mask='@RC',csvName=caseName)                        
     JA=GetFlux(traj,mask='@RC',display=display)
-    print(Di,JA) 
+    print("Di %f J %f"%(Di,JA))
     return Di,JA 
 
 ##
 ## MAIN 
 ## 
-def doit(figName,yamlNamePrefix="*"): 
+
+# reads the default params and those in the yaml file 
+def doit(figName,yamlNamePrefix="*",single=False): 
 
   # get names
-  globTag = path+"/"+yamlNamePrefix+'*yaml'
-  try: 
-    yamlNames = glob.glob(globTag)
-  except:
-    raise RuntimeError("No files found") 
+  if single:
+      yamlNames=[yamlNamePrefix+".yaml"]
+  else: 
+    globTag = path+"/"+yamlNamePrefix+'*yaml'
+    try: 
+      yamlNames = glob.glob(globTag)
+    except:
+      raise RuntimeError("No files found") 
 
   #print(globTag) 
   #print(yamlNames)
   
   df = pd.DataFrame(columns=["trajName","tag","condVal","D","flux*A"]) 
+
   for yamlName in yamlNames:
       # open yaml
       #yamlName = path+"/"+yamlName
@@ -127,21 +160,31 @@ def doit(figName,yamlNamePrefix="*"):
       # get output name 
       trajName = auxParams['outName']                   
       print(trajName) 
+
       #trajNames.append(trajName) 
       # get 'tag'
-      tag = auxParams['tag']
       # get cond value 
-      condVal = auxParams[tag]
+      try:
+        tag = auxParams['tag']
+        condVal = auxParams[tag]
+      except:
+        tag = 'tag'
+        condVal=1.
       print(tag,condVal)
   
       # process 
-      Di,JA = ProcessTraj(trajName) 
+      display = False
+      if single:
+          display=True
+      Di,JA = ProcessTraj(trajName,display=display) 
   
       # add to dataframe 
       df.loc[len(df.index)] = [trajName, tag, condVal,Di,JA]
   
-  print(df)
+  if single:
+      return Di,JA
   
+  print(df)
   outCsv = path+figName+".csv"       
   print("printed %s"%outCsv)
   df.to_csv(outCsv)               
@@ -160,7 +203,7 @@ Purpose:
  
 Usage:
 """
-  msg+="  %s -fig4/-fig5/-single [yaml]" % (scriptName)
+  msg+="  %s -fig4/-fig5/-single [yaml/dcdprefix]" % (scriptName)
   msg+="""
   
  
@@ -194,8 +237,9 @@ if __name__ == "__main__":
       quit()
 
     elif(arg=="-single"): 
-      trajName=sys.argv[i+1]#
-      Di,JA = ProcessTraj(trajName,display=True)
+      yamlName=sys.argv[i+1]#
+      Di,JA = doit("test.png",yamlName,single =True)
+      #Di,JA = ProcessTraj(trajName,display=True)
       quit()
 
   

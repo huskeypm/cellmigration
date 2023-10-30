@@ -27,3 +27,4 @@ https://colab.research.google.com/drive/1AZdQw3q9cdjF7HGfCZCfOkKR7idzIYLD#scroll
 
 
 
+exptl.yaml <- reproduces experimentally-observed diffusion
