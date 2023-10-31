@@ -4,16 +4,19 @@ Instructions are inside the script
 
 Simulation Procedure 
 * Run writeInputs.py without inputs
- python3 writeInputs.py -fig[4,5,???]
+ python3 writeInputs.py -fig[4,5,???] | grep python > runallXXXX
 It will generate output yaml files
 
 * Run each using this setup: 
+ source ../config.bash
  python3 brown_wnonbond.py -yamlFile paper/out_nParticles10.000000.yaml -run
 
-(Note: this is spit out by the program anyway
+Note: this is spit out by the program anyway, so pipe to a 'runall' bash script, so that you can run
+ bash runallXXXX
 
 Analysis Procedure:
-* Need to edit the inputs to this to make sure data is processed correctly 
+* Need to edit the inputs to this to make sure data is processed correctly. Namely, need to define the yamlNamesFig4 var at the beginning of the script
+ source ../config.bash
  python3 batchProcess.py -fig[4,5,??]
 
 * using colab for now for analysis

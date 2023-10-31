@@ -8,5 +8,5 @@ friction:   2 # [1/ps] (time is in no relation to expt, treat as unitless here)
 xPotential: True    # [True/False]/applied along x-direction
 xScale: 0.3      # scale for chemoattractant gradient (when xpotential is true)  
 yPotential: False # [True/False] 
-outName: atp
+outName: atp  # no underscore 
 
