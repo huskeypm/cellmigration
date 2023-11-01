@@ -40,18 +40,18 @@ def CalcProbDist(traj, mask='@RC',display=False):
   ## get cells
   indices = pt.select_atoms(traj.top, mask)
 
-  xs = traj.xyz[:,indices,0]
+  xs = traj.xyz[0:,indices,0]
   xs = np.ndarray.flatten(xs)  # n particles x m timesteps 
-  ys = traj.xyz[:,indices,1]
+  ys = traj.xyz[0:,indices,1]
   ys = np.ndarray.flatten(ys)  # n particles x m timesteps 
-  print("da shape") 
-  print(np.shape(xs))
 
-  a,b,c= np.histogram2d(xs,ys)
-  print(np.shape(a))
+  p,x,y= np.histogram2d(xs,ys)
+  X, Y = np.meshgrid(x, y)
   plt.figure()
-  plt.pcolormesh(a)    
+  plt.pcolormesh(X, Y, p.T) # probably T is appropriate here 
   plt.gcf().savefig("prob.png",dpi=300)
+
+  return p,X,Y
 
 
 ## get flux
@@ -152,7 +152,7 @@ def CalcVolFrac(auxParams):
   return volFrac 
 
 # casename should include full path 
-def ProcessTraj(caseName,display=False): 
+def LoadTraj(caseName):
     # load
     try:
       dcd=caseName+".dcd"; pdb=caseName+".pdb"
@@ -160,6 +160,12 @@ def ProcessTraj(caseName,display=False):
     except:
       raise RuntimeError("You're likely missing a file like %s"%dcd)
     print("Loaded %s"%dcd)
+    return traj
+
+
+def ProcessTraj(caseName,display=False): 
+    # LoadTraj
+    traj = LoadTraj(caseName)
 
     ## get J,D    
     Di=CalcD(traj,mask='@RC',csvName=caseName)                        
