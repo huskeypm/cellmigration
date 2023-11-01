@@ -130,8 +130,11 @@ class Params():
     paramDict["yPotential"] = False
     paramDict["xScale"]   = 100.   # scale for chemoattractant gradient 
     paramDict["frameRate"]=   1.  # [1 min/update]
-    paramDict["cellRad"] = 0.1
+    paramDict["cellRad"] = 0.1    # [um] cell radius  (seems too small) 
+    paramDict["cellAttr"]=0.   # [] attraction between crowder and cell (vdw representation) 
     paramDict["crowderRad"]= 10.  # [um]
+    paramDict["crowderAttr"]=0.   # [] attraction between crowder and cell (vdw representation) 
+
     paramDict["outName"]="test"
 
     print("WARNING get dimensions consistent ")
@@ -180,8 +183,8 @@ def runBD(
     
   # place particles 
   # TODO: start w preequilibrated box or get cells from expt 
-  nParticles = paramDict["nParticles"] 
-  nCrowders = paramDict["nCrowders"] 
+  nParticles = int(paramDict["nParticles"])
+  nCrowders = int(paramDict["nCrowders"])
 
 
   import lattice 
@@ -193,7 +196,8 @@ def runBD(
 
   newCrowderPos = np.shape(crowderPos)[0]
   if (newCrowderPos != nCrowders):
-    print("WARNING: increasing nCrowders to the nearest 'square-rootable' value")
+    print("WARNING: increasing nCrowders to the nearest 'square-rootable' value: %d"
+            %newCrowderPos)
     nCrowders = newCrowderPos 
 
   nTot = nParticles + nCrowders
@@ -252,11 +256,12 @@ def runBD(
   for i in range(nCrowders):      
     sigma = paramDict["crowderRad"]
     #delta = 50
-    delta = 0           
+    delta = paramDict["crowderAttr"]
     nonbond.addParticle([sigma,delta])
   for i in range(nParticles):      
     sigma = paramDict["cellRad"] 
-    delta = 0  # no attraction with other particles of same type 
+    #delta = 0  # no attraction with other particles of same type 
+    delta = paramDict["cellAttr"]
     nonbond.addParticle([sigma,delta])
 
   #integrator = mm.LangevinIntegrator(temperature, friction, timestep)
@@ -272,7 +277,7 @@ def runBD(
   if display:
     CustomForce.plot(ax=plt.gca())
   
-  nUpdates = paramDict["nUpdates"]
+  nUpdates = int(paramDict["nUpdates"])
   totTime = nUpdates *  paramDict["frameRate"]  # [1 min/update]
 
   ts = np.arange(nUpdates)/float(nUpdates) * totTime             

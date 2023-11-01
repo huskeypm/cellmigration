@@ -41,25 +41,26 @@ python3 -c "import simtk"
 ```
 
 ## Execution 
-- It is recommended to run brown.py from the command line via 
-```
-python3 tests/brown.py -validation 
-```
-or
+- It is recommended to run brown_wnonbond.py from the command line via 
 ```
 python3 brown_wnonbond.py -validation 
+```
+
+- To see the list of parameters used:
+```
+python3 brown_wnonbond.py -printVar
 ```
 
 
 - The program is customized using parameters that are loaded in 'yaml' format. The syntax for calling the code with FILE.yaml is
 ```
-python3 tests/brown.py -yamlFile FILE.yaml -run
+python3 brown_wnonbond.py -yamlFile FILE.yaml -run
 ```
 
 - An example yaml file is provided [here](https://github.com/bending456/OpenMMKant/blob/main/tests/paramSet1.yaml). In this example, the trajectory file is written to x.pkl
 
 
-- Note: some of our installations are old, so you make have to import simtk.openmm instead of just openmm. If so, edit tests/brown.py accordingly
+- Note: some of our installations are old, so you make have to import simtk.openmm instead of just openmm. If so, edit tests/brown_wnonbond.py accordingly
 
 
 ## Analysis
@@ -74,8 +75,9 @@ This will print all of the parameters in csv format as well as an output yaml fi
 
 
 ## TODO
-- RESOLVED There is some kind of problem with the z-constraint. Compare brown.py z coordinates relative to openmuller.py in the tests directory 
+- RESOLVED There is some kind of problem with the z-constraint. Compare brown_wnonbond.py z coordinates relative to openmuller.py in the tests directory 
 - PBCs in Y direction should be added 
+- implement flux calculation 
 - piecewise continuous functions? (this doesn't appear to be supported 
 
 #TOFIX

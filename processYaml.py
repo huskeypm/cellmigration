@@ -4,14 +4,15 @@ import brown_util as bu
 import yaml 
 
 
-def process(params):
+def processPKL(params):
   #print(params.keys())
   #trajOutName = "./tests/crowder.pkl"
   trajOutName=params['outName']+".pkl"
   
-  ts,xs,ys, nUpdates, nParticles = bu.LoadPKLData(trajOutName)
+  ts,xs,ys, nUpdates, nParticles =bu.LoadPKLData(trajOutName)
+  bu.PlotFinalPosition(xs,ys,params['outName']+"_posn.png")
   msds = bu.meanSquareDisplacements(xs,ys,nUpdates)
-  texp, msdfit,D=bu.CalcMSD(ts,msds)
+  texp, msdfit,D=bu.CalcMSD(ts,msds,outName=params['outName']+".png",display=True)
   D=D[0]
   return D 
 
@@ -34,7 +35,7 @@ def doit(yamlFile):
   file.close()
 
   # get D 
-  D = process(auxParams)
+  D = processPKL(auxParams)
 
   # write 
   outParams = auxParams.copy()
@@ -62,7 +63,7 @@ Purpose:
  
 Usage:
 """
-  msg+="  %s -validation" % (scriptName)
+  msg+="  %s -yaml  <filename>" % (scriptName)
   msg+="""
   
  
@@ -87,6 +88,7 @@ if __name__ == "__main__":
   #  1
   #  #print "arg"
 
+  raise RunTimeError("look at batch process and merge in stuff from here") 
   # Loops ovyer each argument in the command line 
   for i,arg in enumerate(sys.argv):
     # calls 'doit' with the next argument following the argument '-validation'

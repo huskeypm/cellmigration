@@ -55,6 +55,9 @@ def GenerateRandomLattice(
   latticePts = GenerateLattice(nLattice,nRow,dim)
   latticeIdxs= np.arange( np.shape(latticePts)[0])
 
+  # typecast
+  nParticles = int(nParticles)
+
   #print(latticePts) 
   #quit()
   
@@ -96,6 +99,7 @@ def GenerateRandomLattice(
   
   # get random set of lattice points 
   #print(np.shape(cellIdx)) 
+
   randomized = np.random.choice( 
           np.ndarray.flatten( cellIdx ) , 
           size=nParticles,

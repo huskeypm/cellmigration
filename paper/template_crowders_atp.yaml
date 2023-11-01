@@ -1,0 +1,11 @@
+nCrowders: 16  
+crowderAttr: 0.2 # [] 
+crowderRad: 10.  # [um]
+nParticles: 20  # adjust me to mirror exptl data 
+nUpdates: 320 # to match with exptl number of frames 
+friction:   2 # [1/ps] (time is in no relation to expt, treat as unitless here)
+xPotential: True    # [True/False]
+xScale: 0.3        # scale for chemoattractant gradient (when xpotential is true)  
+yPotential: False # [True/False] 
+outName: crwdatp # no underscore
+
