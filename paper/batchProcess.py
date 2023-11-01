@@ -30,8 +30,32 @@ dt = 1.
 ## 
 ## FUNC
 ##
+def CalcProbDist(traj, mask='@RC',display=False):
+# for each particle, get dx in all directions, provide dt as input
+# select particles in some neighborhood of y=0?
+# grab dx along flux direction
+# sum(dx) / delta y
+  numFrames = (np.shape(traj.xyz))[0]
+
+  ## get cells
+  indices = pt.select_atoms(traj.top, mask)
+
+  xs = traj.xyz[:,indices,0]
+  xs = np.ndarray.flatten(xs)  # n particles x m timesteps 
+  ys = traj.xyz[:,indices,1]
+  ys = np.ndarray.flatten(ys)  # n particles x m timesteps 
+  print("da shape") 
+  print(np.shape(xs))
+
+  a,b,c= np.histogram2d(xs,ys)
+  print(np.shape(a))
+  plt.figure()
+  plt.pcolormesh(a)    
+  plt.gcf().savefig("prob.png",dpi=300)
+
+
 ## get flux
-def GetFlux(traj, mask='@RC',display=False):
+def CalcFlux(traj, mask='@RC',display=False):
 # for each particle, get dx in all directions, provide dt as input
 # select particles in some neighborhood of y=0?
 # grab dx along flux direction
@@ -120,9 +144,9 @@ def CalcVolFrac(auxParams):
   r = auxParams['crowderRad']
 
   volFrac = d*d - n*np.pi*r*r  # since domain is square
-  print(d)
-  print(n,r)
-  print(n*np.pi*r*r)
+  #print(d)
+  #print(n,r)
+  #print(n*np.pi*r*r)
   volFrac /= d*d                
 
   return volFrac 
@@ -137,11 +161,13 @@ def ProcessTraj(caseName,display=False):
       raise RuntimeError("You're likely missing a file like %s"%dcd)
     print("Loaded %s"%dcd)
 
-    ## get D    
-
+    ## get J,D    
     Di=CalcD(traj,mask='@RC',csvName=caseName)                        
-    JA=GetFlux(traj,mask='@RC',display=display)
+    JA=CalcFlux(traj,mask='@RC',display=display)
     print("Di %f J %f"%(Di,JA))
+
+    # get 2D histogram of populations
+    CalcProbDist(traj,mask='@RC')
     return Di,JA 
 
 ##
@@ -164,7 +190,9 @@ def doit(figName,yamlNamePrefix="*",single=False):
   #print(globTag) 
   #print(yamlNames)
   
-  df = pd.DataFrame(columns=["trajName","tag","condVal","D","flux*A"]) 
+  df = pd.DataFrame(
+          columns=["trajName","tag","condVal","D","flux*A","Vol Frac"]
+          ) 
 
   for yamlName in yamlNames:
       # open yaml
@@ -177,8 +205,6 @@ def doit(figName,yamlNamePrefix="*",single=False):
 
       # compute vol frac
       volFrac = CalcVolFrac(auxParams)
-      print(volFrac)
-      quit()
 
       #trajNames.append(trajName) 
       # get 'tag'
@@ -198,7 +224,7 @@ def doit(figName,yamlNamePrefix="*",single=False):
       Di,JA = ProcessTraj(trajName,display=display) 
   
       # add to dataframe 
-      df.loc[len(df.index)] = [trajName, tag, condVal,Di,JA]
+      df.loc[len(df.index)] = [trajName, tag, condVal,Di,JA,volFrac]
   
   if single:
       return Di,JA
