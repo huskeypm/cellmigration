@@ -23,6 +23,8 @@ min_per_hour = 60  #
 
 
 # https://demonstrations.wolfram.com/TrajectoriesOnTheMullerBrownPotentialEnergySurface/#more
+# adding external potential to keep things within a cylinder, based on this example
+# http://docs.openmm.org/latest/userguide/application/04_advanced_sim_examples.html 
 class CustomForce(mm.CustomExternalForce):
     """OpenMM custom force for propagation on the Muller Potential. Also
     includes pure python evaluation of the potential energy surface so that
@@ -33,6 +35,7 @@ class CustomForce(mm.CustomExternalForce):
     XX = [0] # need to adjust this to the domain size 
     YY = [0]
     # z - potential is defined below 
+
 
 
     def __init__(self,
@@ -50,7 +53,7 @@ class CustomForce(mm.CustomExternalForce):
          
 
         # start with a harmonic restraint on the Z coordinate
-        expression = '1000.0 * z^2'
+        expression = '100.0 * z^2'
 
         # any changes here must be made in potential() below too 
         j=0   # TODO superfluous, remove later 
@@ -72,6 +75,9 @@ class CustomForce(mm.CustomExternalForce):
         # xPotential = aa*(xParticle-x0)      <--- if bba=1
         expression += '''+ {aa} * (x - {XX})^{bba}  '''.format(**fmt)
   
+        # cylindrical container in xy plane 
+        # force = CustomExternalForce('100*max(0, r-2)^2; r=sqrt(x*x+y*y+z*z)')
+        #expression += 
         print(expression)
                                
         super(CustomForce, self).__init__(expression)
@@ -133,7 +139,7 @@ class Params():
     paramDict["frameRate"]=   1.  # [1 min/update]
     paramDict["cellRad"] = 0.1    # [um] cell radius  (seems too small) 
     paramDict["cellAttr"]=0.   # [] attraction between crowder and cell (vdw representation) 
-    paramDict["crowderRad"]= 10.  # [um]
+    paramDict["crowderRad"]= 1.  # [um]
     paramDict["crowderAttr"]=0.   # [] attraction between crowder and cell (vdw representation) 
 
     paramDict["outName"]="test"
@@ -142,14 +148,12 @@ class Params():
 
     # system params (can probably leave these alone in most cases
     paramDict["cAttr"]      = 1.     # conc. of chemoattractant 
-    diamCell   = 1e-2   # [mm]
-    diamOccl   = 1e-1   # [mm] --> needs to be used for nonbond parameters TODO
     paramDict["lenDom"]     = 1e0    # [mm] --> convert into micron 
-    paramDict["domainDim"]    = 200  # [um] dimensions of domain 
-    paramDict["crowderDim"]    = 50   # [um] dimensions of domain containing crowders (square)  
+    paramDict["domainDim"]    = 99  # FOR NOW, KEEP PARTICLES WITHIN 99 for PDB [um] dimensions of domain  
+    paramDict["crowderDim"]    = 5   # [um] dimensions of domain containing crowders (square)  
     paramDict["nInteg"] = 100  # integration step per cycle
     paramDict["mass"] = 1.0 * dalton
-    paramDict["temperature"] = 750 * kelvin
+    paramDict["temperature"] = 298 * kelvin
     paramDict['dumpSize'] = 100 
 
     # store all values 
@@ -194,6 +198,13 @@ def runBD(
           crowdedDim=paramDict["crowderDim"], # [um] dimensions of domain containing crowders (square)  
           outerDim=paramDict["domainDim"]
           )  # generate crowders
+  print("WARNING: overwriting particle reandomizations") 
+  cellPos[0,0]=-10
+  cellPos[1,0]= 10
+  #cellPos[:,1]=0
+  #crowderPos[0,:]=0
+  print(cellPos)
+
 
   newCrowderPos = np.shape(crowderPos)[0]
   if (newCrowderPos != nCrowders):
@@ -221,7 +232,9 @@ def runBD(
   pdbFileName = trajOutPfx+".pdb"
   dcdFileName = trajOutPfx+".dcd"
   # define arbitrary pdb
-  calc.genPDBWrapper(pdbFileName,nParticles,nCrowders,startingPositions)
+  nm_to_Ang=10
+  sp_Ang = startingPositions*nm_to_Ang # default is nm in program, but pdb/dcd use Ang     
+  calc.genPDBWrapper(pdbFileName,nParticles,nCrowders,sp_Ang)
   #calc.genPDBWrapper(pdbFileName,nTot,startingPositions)
   # add to openmm
   pdb = PDBFile(pdbFileName) 
@@ -230,20 +243,30 @@ def runBD(
   dumpSize = paramDict['dumpSize'] # 100 
   dcdReporter = DCDReporter(dcdFileName, dumpSize)
 
+  print("ADD ME")
+  #simulation.reporters.append(StateDataReporter(stdout, 1000, step=True,
+  #      potentialEnergy=True, temperature=True))
+
 
   # define external force acting on particle 
   customforce = CustomForce(paramDict)
-
+  cfi=0
   for i in range(nCrowders):      
       system.addParticle(paramDict["mass"]*1e4)
       # PKH - i don't think I need a custom force for this one 
+      customforce.addParticle(cfi, [])
+      cfi+=1
   for i in range(nParticles):      
       system.addParticle(paramDict["mass"])
-      customforce.addParticle(i, [])
+      customforce.addParticle(cfi, [])
+      cfi+=1
   
-  if paramDict["xPotential"] or paramDict["yPotential"]: 
-    print("Adding force") 
-    system.addForce(customforce) # <-- PKH should this be added earlier to keep things in z
+  print("Adding force") # always do, since using z-potential  
+  system.addForce(customforce) # <-- PKH should this be added earlier to keep things in z
+
+  print("ADDING CYLINDERICAL FORCE (centetred at x=0/y=0, r=20") 
+  extForce = mm.CustomExternalForce('1000*max(0, r-20)^2; r=sqrt(x*x+y*y)')
+  system.addForce(extForce)
 
   # define nonbond force between particles
   nonbond = mm.CustomNonbondedForce("(sigma/r)^12-delta*(sigma/r)^6; sigma=0.5*(sigma1+sigma2); delta=0.5*(delta1+delta2)") # TODO: don't we use geometric avg for this ?
@@ -254,13 +277,17 @@ def runBD(
   system.addForce(nonbond)
 
   # TODO: might need to integrate into loop above, when particles are added to system
+  print("DEBUG/NO VDW")
+  scale = 0.
   for i in range(nCrowders):      
     sigma = paramDict["crowderRad"]
+    sigma*=scale
     #delta = 50
     delta = paramDict["crowderAttr"]
     nonbond.addParticle([sigma,delta])
   for i in range(nParticles):      
     sigma = paramDict["cellRad"] 
+    sigma*=scale
     #delta = 0  # no attraction with other particles of same type 
     delta = paramDict["cellAttr"]
     nonbond.addParticle([sigma,delta])
@@ -287,9 +314,11 @@ def runBD(
   
 
   # minimize to reconcile bad contacts
-  minimize = False
+  minimize = True   
   if minimize:
     simulation.minimizeEnergy() # don't do this, since it will move the crowders too 
+  else:
+    print("WARNING: not minimizing; should have per-crowder constraints") 
 
   #
   # START ITERATOR 
@@ -299,9 +328,10 @@ def runBD(
       x = simulation.context.getState(getPositions=True).getPositions(asNumpy=True).value_in_unit(nanometer)
   
       # get particle's positions 
-      xs[:,i] = x[:,0]
-      ys[:,i] = x[:,1]
-      #print(x[1,:])
+      xs[:,i] = x[:,0]*nm_to_Ang
+      ys[:,i] = x[:,1]*nm_to_Ang
+      #j=1 # particle 2
+      #print(xs[j,i],ys[j,i])
       #print("------") 
       #print(x[0:5,:])
       
@@ -337,6 +367,7 @@ def runBD(
     file = open(trajOutName, 'wb') 
     pkl.dump(ar,file)        
     file.close()
+  print("WARNING: pdb, dcd, and pkl are reported in Angstrom, while states are in nanometer!!")
   
   return ts,xs, ys 
 
