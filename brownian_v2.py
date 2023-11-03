@@ -36,6 +36,12 @@ class CustomForce(mm.CustomExternalForce):
     YY = [0]
     # z - potential is defined below 
 
+    # for square potential 
+    MINX=[-50e3]
+    MAXX=[ 50e3]
+    MINY=[-10e3]
+    MAXY=[ 10e3]
+
 
 
     def __init__(self,
@@ -45,15 +51,21 @@ class CustomForce(mm.CustomExternalForce):
         pD = paramDict
         yPotential = pD["yPotential"]
         xPotential = pD["xPotential"]
- 
-        # chemoattractant gradient ; assume RHS is maximal ATP
-        # c(x=len) = cAttr * ac *x ---> ac = c/lenDom 
-        ac    = pD["cAttr"]/pD["lenDom"]
-        self.aa[0] = -1 * pD["xScale"] * ac # make attractive for U = -xScale * c       
-         
+        containmentPotential = pD["containmentPotential"]
+        self.MINX[0]=-pD["domainDim"]/2.
+        self.MAXX[0]= pD["domainDim"]/2.
+        self.MINY[0]=-pD["domainDim"]/4.
+        self.MAXY[0]= pD["domainDim"]/4.
 
         # start with a harmonic restraint on the Z coordinate
         expression = '100.0 * z^2'
+
+ 
+        # chemoattractant gradient ; assume RHS is maximal ATP
+        # c(x=len) = cAttr * ac *x ---> ac = c/lenDom 
+        ac    = pD["cAttr"]/self.MAXX[0]
+        self.aa[0] = -1 * pD["xScale"] * ac # make attractive for U = -xScale * c       
+         
 
         # any changes here must be made in potential() below too 
         j=0   # TODO superfluous, remove later 
@@ -65,7 +77,9 @@ class CustomForce(mm.CustomExternalForce):
              
         # add the terms for the X and Y
         fmt = dict(
-                aa=self.aa[j], XX=self.XX[j], bb=self.bb[j], bba=self.bba[j], YY=self.YY[j])
+                aa=self.aa[j], XX=self.XX[j], bb=self.bb[j], bba=self.bba[j], YY=self.YY[j],
+                MINX=self.MINX[j], MAXX=self.MAXX[j],MINY=self.MINY[j], MAXY=self.MAXY[j], # for square
+                )
 
         # y parabola 
         expression += '''+ {bb} * (y - {YY})^4'''.format(**fmt)
@@ -77,11 +91,18 @@ class CustomForce(mm.CustomExternalForce):
         expression +=" "
   
         # cylindrical container in xy plane 
-        cylindrical=True
-        if cylindrical:
-          print('adding clyindrical') 
-          # force = CustomExternalForce('100*max(0, r-2)^2; r=sqrt(x*x+y*y+z*z)')
+        if containmentPotential=='cylinder':
+          print('adding cylindrical containment potential') 
           expression+='+10*max(0, r-10)^2; r=sqrt(x*x+y*y+z*z)'
+
+        elif containmentPotential=='square':
+          print('adding square containment potential') 
+          # works 
+          #expression+='+10*(max(0, -10-x) + max(0, x-10));'
+          expression+='''+10*(max(0, {MINX}-x) + max(0, x-{MAXX}) + max(0, {MINY}-y) + max(0, y-{MAXY}));'''.format(**fmt)
+          #expression+="+100*(0*step(10-x) + (1-step(-10-x)))"#+
+#                             step(10-y) + step(-10-y))     "
+
         print(expression)
                                
         super(CustomForce, self).__init__(expression)
@@ -139,6 +160,7 @@ class Params():
     paramDict["nUpdates"] = 1000  # number of cycldes 
     paramDict["xPotential"] = False
     paramDict["yPotential"] = False
+    paramDict["containmentPotential"] = False # 'cylindrical','square'
     paramDict["xScale"]   = 100.   # scale for chemoattractant gradient 
     paramDict["frameRate"]=   1.  # [1 min/update]
     paramDict["cellRad"] = 0.1    # [um] cell radius  (seems too small) 
@@ -152,8 +174,7 @@ class Params():
 
     # system params (can probably leave these alone in most cases
     paramDict["cAttr"]      = 1.     # conc. of chemoattractant 
-    paramDict["lenDom"]     = 1e0    # [mm] --> convert into micron 
-    paramDict["domainDim"]    = 99  # FOR NOW, KEEP PARTICLES WITHIN 99 for PDB [um] dimensions of domain  
+    paramDict["domainDim"]    = 10  # FOR NOW, KEEP PARTICLES WITHIN 99 for PDB [um] dimensions of domain  
     paramDict["crowderDim"]    = 5   # [um] dimensions of domain containing crowders (square)  
     paramDict["nInteg"] = 100  # integration step per cycle
     paramDict["mass"] = 1.0 * dalton
@@ -202,13 +223,6 @@ def runBD(
           crowdedDim=paramDict["crowderDim"], # [um] dimensions of domain containing crowders (square)  
           outerDim=paramDict["domainDim"]
           )  # generate crowders
-  print("WARNING: overwriting particle reandomizations") 
-  cellPos[0,0]=-10
-  cellPos[1,0]= 10
-  #cellPos[:,1]=0
-  #crowderPos[0,:]=0
-  print(cellPos)
-
 
   newCrowderPos = np.shape(crowderPos)[0]
   if (newCrowderPos != nCrowders):
@@ -244,8 +258,6 @@ def runBD(
   # define arbitrary pdb
   nm_to_Ang=10
   sp_Ang = startingPositions*nm_to_Ang # default is nm in program, but pdb/dcd use Ang     
-  print(np.shape(startingPositions))
-  print(startingPositions)
   calc.genPDBWrapper(pdbFileName,nParticles,nCrowders,sp_Ang)
   #calc.genPDBWrapper(pdbFileName,nTot,startingPositions)
   # add to openmm
@@ -331,6 +343,7 @@ def runBD(
   #
   # START ITERATOR 
   #
+  print("Running dynamics") 
   for i in range(nUpdates): 
       # get positions at ith cycle 
       x = simulation.context.getState(getPositions=True).getPositions(asNumpy=True).value_in_unit(nanometer)
