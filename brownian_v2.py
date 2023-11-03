@@ -77,9 +77,11 @@ class CustomForce(mm.CustomExternalForce):
         expression +=" "
   
         # cylindrical container in xy plane 
-        print('adding clyindrical') 
-        # force = CustomExternalForce('100*max(0, r-2)^2; r=sqrt(x*x+y*y+z*z)')
-        expression+='+10*max(0, r-10)^2; r=sqrt(x*x+y*y+z*z)'
+        cylindrical=True
+        if cylindrical:
+          print('adding clyindrical') 
+          # force = CustomExternalForce('100*max(0, r-2)^2; r=sqrt(x*x+y*y+z*z)')
+          expression+='+10*max(0, r-10)^2; r=sqrt(x*x+y*y+z*z)'
         print(expression)
                                
         super(CustomForce, self).__init__(expression)
@@ -282,8 +284,7 @@ def runBD(
   system.addForce(nonbond)
 
   # TODO: might need to integrate into loop above, when particles are added to system
-  print("DEBUG/NO VDW")
-  scale = 0.
+  scale = 0.001
   for i in range(nParticles):      
     sigma = paramDict["cellRad"] 
     sigma*=scale
