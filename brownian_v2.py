@@ -107,41 +107,6 @@ class CustomForce(mm.CustomExternalForce):
                                
         super(CustomForce, self).__init__(expression)
 
-    @classmethod
-    # must match 'init' def. above 
-    # only used for plotting, so ignores z-direction 
-    def potential(cls, x, y):
-        "Compute the potential at a given point x,y"
-        # use cls., not self. here 
-        value = 0
-        #for j in range(1):
-        j=0
-        if 1:
-            # y parabola
-            #if cls.yPotential:
-            value += cls.bb[j] * (y - cls.YY[j])**4
-            # x gradient/linear
-            #value += cls.aa[j] * (x - cls.XX[j])**4
-            value += cls.aa[j] * (x - cls.XX[j])**cls.bba[j]
-                
-        return value
-
-    @classmethod
-    #def plot(cls, ax=None, minx=-1.5, maxx=3.0, miny=0.0, maxy=2, **kwargs):
-    def plot(cls, ax=None, minx=-100, maxx=100.0, miny=-100.0, maxy=100, **kwargs):
-        "Plot the potential"
-        grid_width = max(maxx-minx, maxy-miny) / 200.0
-        ax = kwargs.pop('ax', None)
-        xx, yy = np.mgrid[minx : maxx : grid_width, miny : maxy : grid_width]
-        V = cls.potential(xx, yy)
-        # clip off any values greater than 200, since they mess up
-        # the color scheme
-        if ax is None:
-            ax = plt
-        ax.contourf(xx, yy, V.clip(max=100), 40, **kwargs)
-        ax.colorbar()
-
-
 
 ##############################################################################
 # Global parameters
@@ -319,9 +284,6 @@ def runBD(
 
   # dcd writing
   simulation.reporters.append(dcdReporter)
-  
-  if display:
-    CustomForce.plot(ax=plt.gca())
   
   nUpdates = int(paramDict["nUpdates"])
   totTime = nUpdates *  paramDict["frameRate"]  # [1 min/update]
