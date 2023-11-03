@@ -54,8 +54,8 @@ class CustomForce(mm.CustomExternalForce):
         containmentPotential = pD["containmentPotential"]
         self.MINX[0]=-pD["domainDim"]/2.
         self.MAXX[0]= pD["domainDim"]/2.
-        self.MINY[0]=-pD["domainDim"]/4.
-        self.MAXY[0]= pD["domainDim"]/4.
+        self.MINY[0]=-pD["domainDim"]/2. # 4.
+        self.MAXY[0]= pD["domainDim"]/2. # 4.
 
         # start with a harmonic restraint on the Z coordinate
         expression = '100.0 * z^2'
@@ -247,7 +247,8 @@ def runBD(
       customforce.addParticle(cfi, [])
       cfi+=1
   for i in range(nCrowders):      
-      system.addParticle(paramDict["mass"]*1e4)
+      #system.addParticle(paramDict["mass"]*1e4)
+      system.addParticle(0.)    # enforces them to be fixed 
       customforce.addParticle(cfi, [])
       cfi+=1
   system.addForce(customforce) # <-- PKH should this be added earlier to keep things in z
@@ -264,15 +265,13 @@ def runBD(
   scale = 0.001
   for i in range(nParticles):      
     sigma = paramDict["cellRad"] 
-    sigma*=scale
     #delta = 0  # no attraction with other particles of same type 
-    delta = paramDict["cellAttr"]
+    delta = scale*paramDict["cellAttr"]
     nonbond.addParticle([sigma,delta])
   for i in range(nCrowders):      
     sigma = paramDict["crowderRad"]
-    sigma*=scale
     #delta = 50
-    delta = paramDict["crowderAttr"]
+    delta = scale*paramDict["crowderAttr"]
     nonbond.addParticle([sigma,delta])
 
   #integrator = mm.LangevinIntegrator(temperature, friction, timestep)
@@ -306,34 +305,40 @@ def runBD(
   # START ITERATOR 
   #
   print("Running dynamics") 
+  diffMax=0.
   for i in range(nUpdates): 
       # get positions at ith cycle 
       x = simulation.context.getState(getPositions=True).getPositions(asNumpy=True).value_in_unit(nanometer)
+
+      try:
+        diff =np.abs(x-xprev)
+        diff= np.max(diff)
+        #print(diff)
+      except:
+        diff=0.
+      diffMax = np.max([diffMax,diff])
+      if diffMax > 10:
+          print("Something happened at step %i (large displacement); stopping"%i)
+          break    
+
+
   
       # get particle's positions 
-      xs[:,i] = x[:,0]*nm_to_Ang
-      ys[:,i] = x[:,1]*nm_to_Ang
+      #xsi[:,i] = x[:,0]*nm_to_Ang
+      #ysi[:,i] = x[:,1]*nm_to_Ang
       #j=1 # particle 2
-      #print(xs[j,i],ys[j,i])
+      #print(xsi[j,i],ysi[j,i])
       #print("coord",xs[10:,i],ys[10:,i])
       #print("------") 
       #print(x[0:5,:])
       
-      # plot 
-      if display: 
-        #plt.scatter(x[:,0], x[:,1], edgecolor='none', facecolor='k')
-        if i==0:
-            facecolor ='r'
-        else:
-            facecolor = 'k'
-        plt.scatter(x[0,0], x[0,1], edgecolor='none', facecolor='b')
-        plt.scatter(x[1:,0], x[1:,1], edgecolor='none', facecolor=facecolor)
-  
-      
-      
       # integrate 
       #integrator.step(paramDict["nInteg"]) # 100 fs <-->  
       simulation.step( paramDict["nInteg"] ) 
+
+      # 
+      xprev = np.copy(x) 
+  print("Diff max %f"%diffMax)
   #
   # END ITERATOR 
   #
