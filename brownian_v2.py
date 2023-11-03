@@ -74,10 +74,12 @@ class CustomForce(mm.CustomExternalForce):
         # my potential for the x direction
         # xPotential = aa*(xParticle-x0)      <--- if bba=1
         expression += '''+ {aa} * (x - {XX})^{bba}  '''.format(**fmt)
+        expression +=" "
   
         # cylindrical container in xy plane 
+        print('adding clyindrical') 
         # force = CustomExternalForce('100*max(0, r-2)^2; r=sqrt(x*x+y*y+z*z)')
-        #expression += 
+        expression+='+10*max(0, r-10)^2; r=sqrt(x*x+y*y+z*z)'
         print(expression)
                                
         super(CustomForce, self).__init__(expression)
@@ -212,14 +214,20 @@ def runBD(
             %newCrowderPos)
     nCrowders = newCrowderPos 
 
+  # cells first, then crowders
   nTot = nParticles + nCrowders
-  startingPositions = np.concatenate((crowderPos,cellPos))
+  startingPositions = np.concatenate((cellPos,crowderPos))
   #print(np.shape(crowderPos))
   #print(np.shape(cellPos))
   #print(np.shape(startingPositions))
 
   # align everything to xy plane 
   startingPositions[:,2] = 0.
+
+
+  print("WARNING: adding random noise, since there's a weird bug with particles placed at origin 0,0,0")
+  startingPositions[:,0]+=1e-3*np.random.rand(nTot)
+  startingPositions[:,1]+=1e-3*np.random.rand(nTot)
   ###############################################################################
 
   
@@ -234,6 +242,8 @@ def runBD(
   # define arbitrary pdb
   nm_to_Ang=10
   sp_Ang = startingPositions*nm_to_Ang # default is nm in program, but pdb/dcd use Ang     
+  print(np.shape(startingPositions))
+  print(startingPositions)
   calc.genPDBWrapper(pdbFileName,nParticles,nCrowders,sp_Ang)
   #calc.genPDBWrapper(pdbFileName,nTot,startingPositions)
   # add to openmm
@@ -249,24 +259,19 @@ def runBD(
 
 
   # define external force acting on particle 
+  # WARNING: ALWAYS treat particles (cells) before crowders, since that's how they're printed in the pdb file 
+  # better fix for this????
   customforce = CustomForce(paramDict)
   cfi=0
-  for i in range(nCrowders):      
-      system.addParticle(paramDict["mass"]*1e4)
-      # PKH - i don't think I need a custom force for this one 
-      customforce.addParticle(cfi, [])
-      cfi+=1
   for i in range(nParticles):      
       system.addParticle(paramDict["mass"])
       customforce.addParticle(cfi, [])
       cfi+=1
-  
-  print("Adding force") # always do, since using z-potential  
+  for i in range(nCrowders):      
+      system.addParticle(paramDict["mass"]*1e4)
+      customforce.addParticle(cfi, [])
+      cfi+=1
   system.addForce(customforce) # <-- PKH should this be added earlier to keep things in z
-
-  print("ADDING CYLINDERICAL FORCE (centetred at x=0/y=0, r=20") 
-  extForce = mm.CustomExternalForce('1000*max(0, r-20)^2; r=sqrt(x*x+y*y)')
-  system.addForce(extForce)
 
   # define nonbond force between particles
   nonbond = mm.CustomNonbondedForce("(sigma/r)^12-delta*(sigma/r)^6; sigma=0.5*(sigma1+sigma2); delta=0.5*(delta1+delta2)") # TODO: don't we use geometric avg for this ?
@@ -279,17 +284,17 @@ def runBD(
   # TODO: might need to integrate into loop above, when particles are added to system
   print("DEBUG/NO VDW")
   scale = 0.
-  for i in range(nCrowders):      
-    sigma = paramDict["crowderRad"]
-    sigma*=scale
-    #delta = 50
-    delta = paramDict["crowderAttr"]
-    nonbond.addParticle([sigma,delta])
   for i in range(nParticles):      
     sigma = paramDict["cellRad"] 
     sigma*=scale
     #delta = 0  # no attraction with other particles of same type 
     delta = paramDict["cellAttr"]
+    nonbond.addParticle([sigma,delta])
+  for i in range(nCrowders):      
+    sigma = paramDict["crowderRad"]
+    sigma*=scale
+    #delta = 50
+    delta = paramDict["crowderAttr"]
     nonbond.addParticle([sigma,delta])
 
   #integrator = mm.LangevinIntegrator(temperature, friction, timestep)
@@ -316,6 +321,8 @@ def runBD(
   # minimize to reconcile bad contacts
   minimize = True   
   if minimize:
+    print("Minimizing system") 
+    print("If stalls, there's probably a big clash somewhere") 
     simulation.minimizeEnergy() # don't do this, since it will move the crowders too 
   else:
     print("WARNING: not minimizing; should have per-crowder constraints") 
@@ -332,6 +339,7 @@ def runBD(
       ys[:,i] = x[:,1]*nm_to_Ang
       #j=1 # particle 2
       #print(xs[j,i],ys[j,i])
+      #print("coord",xs[10:,i],ys[10:,i])
       #print("------") 
       #print(x[0:5,:])
       
