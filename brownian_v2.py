@@ -129,9 +129,9 @@ class Params():
     paramDict["xScale"]   = 100.   # scale for chemoattractant gradient 
     paramDict["frameRate"]=   1.  # [1 min/update]
     paramDict["cellRad"] = 0.1    # [um] cell radius  (seems too small) 
-    paramDict["cellAttr"]=0.   # [] attraction between crowder and cell (vdw representation) 
+    paramDict["cellAttr"]=1.   # [] attraction between crowder and cell (vdw representation) 
     paramDict["crowderRad"]= 1.  # [um]
-    paramDict["crowderAttr"]=0.   # [] attraction between crowder and cell (vdw representation) 
+    paramDict["crowderAttr"]=1.   # [] attraction between crowder and cell (vdw representation) 
 
     paramDict["outName"]="test"
 
@@ -254,25 +254,27 @@ def runBD(
   system.addForce(customforce) # <-- PKH should this be added earlier to keep things in z
 
   # define nonbond force between particles
-  nonbond = mm.CustomNonbondedForce("(sigma/r)^12-delta*(sigma/r)^6; sigma=0.5*(sigma1+sigma2); delta=0.5*(delta1+delta2)") # TODO: don't we use geometric avg for this ?
+  #nonbond = mm.CustomNonbondedForce("(sigma/r)^12-delta*(sigma/r)^6; sigma=0.5*(sigma1+sigma2); delta=0.5*(delta1+delta2)") # TODO: don't we use geometric avg for this ?
+  # definitely the NB that is the issue (code works w/o the force enabled) 
+  # might be that my average step size is around 2 nm, but sigma for cells is < 1 nm
+  nonbond = mm.CustomNonbondedForce("4*delta*((sigma/r)^12-(sigma/r)^6); sigma=0.5*(sigma1+sigma2); delta=0.5*(delta1+delta2)") # TODO: don't we use geometric avg for this ?
   nonbond.addPerParticleParameter("sigma")
   nonbond.addPerParticleParameter("delta")  
   nonbond.setCutoffDistance(9)
-  # Add force to the System
-  system.addForce(nonbond)
 
   # TODO: might need to integrate into loop above, when particles are added to system
-  scale = 0.001
   for i in range(nParticles):      
     sigma = paramDict["cellRad"] 
     #delta = 0  # no attraction with other particles of same type 
-    delta = scale*paramDict["cellAttr"]
+    delta = paramDict["cellAttr"]
     nonbond.addParticle([sigma,delta])
   for i in range(nCrowders):      
     sigma = paramDict["crowderRad"]
     #delta = 50
-    delta = scale*paramDict["crowderAttr"]
+    delta = paramDict["crowderAttr"]
     nonbond.addParticle([sigma,delta])
+  # Add force to the System
+  system.addForce(nonbond)
 
   #integrator = mm.LangevinIntegrator(temperature, friction, timestep)
   integrator = mm.BrownianIntegrator(paramDict["temperature"], paramDict["friction"], paramDict["timestep"])
@@ -317,7 +319,7 @@ def runBD(
       except:
         diff=0.
       diffMax = np.max([diffMax,diff])
-      if diffMax > 10:
+      if diffMax > 100:
           print("Something happened at step %i (large displacement); stopping"%i)
           break    
 
@@ -338,7 +340,9 @@ def runBD(
 
       # 
       xprev = np.copy(x) 
-  print("Diff max %f"%diffMax)
+  if diffMax > np.min([paramDict["crowderRad"],paramDict["particleRad"]]):
+      print("Diff max %f"%diffMax)
+      print("WARNING: step size is greater than particle sizes, which may give bad results;increase friction") 
   #
   # END ITERATOR 
   #

@@ -8,7 +8,7 @@ def GenerateLattice(
         dim
         ):
 
-  latticeSpace = dim/nRow
+  latticeSpace = dim/(nRow-1)
   
   latticePts = np.zeros([nLattice,3]) 
   for i in range(nLattice):
