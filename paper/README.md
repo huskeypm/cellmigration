@@ -1,4 +1,15 @@
-Use writeInputs for creating appropriate yaml files
+Use writeInputs for creating appropriate yaml files from templates 
+
+* Setup
+make a reference file that includes ATP and crowders
+ templatefull.yaml
+
+* Batch processing 
+edit master.ipynb to run/process jobs
+upload/process files with colab notebook above 
+
+
+
 
 Instructions are inside the script 
 

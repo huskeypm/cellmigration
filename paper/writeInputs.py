@@ -40,7 +40,7 @@ import yaml
 cmd = "python3 ../brown_wnonbond.py -yamlFile "
 
 varIter=5 # range of key values
-runs=3    # number of time each condition is run 
+varRuns=3    # number of time each condition is run 
 path="./"   # path for outfiles 
 date="231004"
 path="/home/pkh-lab-shared/migration/"+date+"/"   # path for outfiles 
@@ -65,9 +65,10 @@ def WriteYaml(contents, fileName,verbose=True):
     print("Created yaml file ",fileName)
 
 # for a given key, write rescaled calues 
-def WriteIterativeYaml(auxParams,daKey,varIter=3):
+def WriteIterativeYaml(auxParams,daKey,varIter=3,varRuns=2):
   dflt = auxParams[daKey] 
   vals = RescaleValues(dflt,nIter=varIter,key=daKey) 
+  # range of vals
   for val in vals:
     val = float(val) 
     #print(val) 
@@ -77,8 +78,8 @@ def WriteIterativeYaml(auxParams,daKey,varIter=3):
     outParams['tag']=daKey
     outParams[daKey] = val
    
-    # over iter
-    for run in range(runs):
+    # replicates per val 
+    for run in range(varRuns):
       keyName="_%s%f_%.2d"%(daKey,val,run)
       outParams['outName']=path+"/"+auxParams['outName']+keyName
       writeName = outParams['outName']+".yaml"

@@ -47,9 +47,11 @@ def CalcProbDist(traj, mask='@RC',display=False):
 
   p,x,y= np.histogram2d(xs,ys)
   X, Y = np.meshgrid(x, y)
-  plt.figure()
-  plt.pcolormesh(X, Y, p.T) # probably T is appropriate here 
-  plt.gcf().savefig("prob.png",dpi=300)
+
+  if display:
+    plt.figure()
+    plt.pcolormesh(X, Y, p.T) # probably T is appropriate here 
+    plt.gcf().savefig("prob.png",dpi=300)
 
   return p,X,Y
 
@@ -181,7 +183,7 @@ def ProcessTraj(caseName,display=False):
 ## 
 
 # reads the default params and those in the yaml file 
-def doit(figName,yamlNamePrefix="*",single=False): 
+def processYamls(figName,yamlNamePrefix="*",single=False): 
 
   # get names
   if single:
@@ -277,19 +279,19 @@ if __name__ == "__main__":
   for i,arg in enumerate(sys.argv):
     if(arg=="-fig4"):
       figName = arg.replace("-","")
-      doit(figName,yamlNamePrefix="noatp_")
-      doit(figName+"atp",yamlNamePrefix="atp_") 
+      processYamls(figName,yamlNamePrefix="noatp_")
+      processYamls(figName+"atp",yamlNamePrefix="atp_") 
       quit() 
 
     elif(arg=="-fig5"):
       figName = arg.replace("-","")
-      doit(figName,yamlNamePrefix="crwdnoatp_")   
-      doit(figName+"atp",yamlNamePrefix="crwdatp_")
+      processYamls(figName,yamlNamePrefix="crwdnoatp_")   
+      processYamls(figName+"atp",yamlNamePrefix="crwdatp_")
       quit()
 
     elif(arg=="-single"): 
       yamlName=sys.argv[i+1]#
-      Di,JA = doit("test.png",yamlName,single =True)
+      Di,JA = processYamls("test.png",yamlName,single =True)
       #Di,JA = ProcessTraj(trajName,display=True)
       quit()
 
