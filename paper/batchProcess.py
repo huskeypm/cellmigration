@@ -30,6 +30,17 @@ dt = 1.
 ## 
 ## FUNC
 ##
+def CalcRDF(traj,
+            mask1, # solvent
+            mask2, # solute
+            space=0.1,
+            bins=20):
+    #radial = pt.rdf(traj, solvent_mask=':WAT@O', solute_mask=':WAT@O', bin_spacing=0.2, maximum=12.)
+    radial = pt.rdf(traj, solvent_mask=mask1, solute_mask=mask2, bin_spacing=space, maximum=bins) 
+
+    return radial 
+
+
 def CalcProbDist(traj, mask='@RC',display=False):
 # for each particle, get dx in all directions, provide dt as input
 # select particles in some neighborhood of y=0?
@@ -48,10 +59,19 @@ def CalcProbDist(traj, mask='@RC',display=False):
   p,x,y= np.histogram2d(xs,ys)
   X, Y = np.meshgrid(x, y)
 
+  # get PMF
+  kT = 1
+  pmf = -np.log(p) * kT 
+
+  display=True
   if display:
     plt.figure()
     plt.pcolormesh(X, Y, p.T) # probably T is appropriate here 
     plt.gcf().savefig("prob.png",dpi=300)
+
+    plt.figure()
+    plt.pcolormesh(X, Y, pmf.T) # probably T is appropriate here 
+    plt.gcf().savefig("pmf.png",dpi=300)
 
   return p,X,Y
 

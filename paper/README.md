@@ -5,8 +5,8 @@ make a reference file that includes ATP and crowders
  templatefull.yaml
 
 * Batch processing 
-edit master.ipynb to run/process jobs
-upload/process files with colab notebook above 
+- edit master.ipynb to run/process jobs
+- upload/process files with colab notebook mentioned below 
 
 
 

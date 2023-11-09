@@ -1,9 +1,7 @@
 # cellmigration
-An openmm-based cell simulator
-
-Originally b ased on the OpenmmKant repo created by Ben Chun 
-
-Code for running langevin particle simulations
+- An openmm-based cell simulator
+- ''Originally based on the OpenmmKant repo created by Ben Chun''
+- ''Code for running langevin particle simulations''
 
 
 # Installation
@@ -85,11 +83,11 @@ ssh -L localhost:8890:localhost:8888    pkekeneshuskey@kant.luc.edu
 - DONE program fails with crowderDim>100
 
 
-## Fitting procedure
+## Fitting procedure (need to update) 
 I adjusted the nUpdates parameter to equal the number of frames taken by the microscope
 The framerate parameter is set to #/min 
-The distance units in the code are assumed to be [um]
-The fraction parameter was adjusted s.t. the MSD at the last frame was close to the expt value
+The distance units in the code are assumed to be [um] though openmm assumes [nm]
+The friction parameter was adjusted s.t. the MSD at the last frame was close to the expt value
 
 ###############################################
 ## Other examples (Deprecated for now) 

@@ -62,8 +62,8 @@ class CustomForce(mm.CustomExternalForce):
 
  
         # chemoattractant gradient ; assume RHS is maximal ATP
-        # c(x=len) = cAttr * ac *x ---> ac = c/lenDom 
-        ac    = pD["cAttr"]/self.MAXX[0]
+        # c(x=len) = chemoAttr * ac *x ---> ac = c/lenDom 
+        ac    = pD["chemoAttr"]/self.MAXX[0]
         self.aa[0] = -1 * pD["xScale"] * ac # make attractive for U = -xScale * c       
          
 
@@ -138,7 +138,7 @@ class Params():
     print("WARNING get dimensions consistent ")
 
     # system params (can probably leave these alone in most cases
-    paramDict["cAttr"]      = 1.     # conc. of chemoattractant 
+    paramDict["chemoAttr"]      = 1.     # conc. of chemoattractant 
     paramDict["domainDim"]    = 10  # FOR NOW, KEEP PARTICLES WITHIN 99 for PDB [um] dimensions of domain  
     paramDict["crowderDim"]    = 5   # [um] dimensions of domain containing crowders (square)  
     paramDict["nInteg"] = 100  # integration step per cycle

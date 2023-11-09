@@ -1,12 +1,12 @@
 # corresponds to about a 75% occupied volume fraction if crowderrad=10 
 nParticles: 20  # adjust me to mirror exptl data 
-particleRad: 1   # um 
-cellAttr: 0.
+cellRad: 10   # um 
+cellAttr: 1.
 domainDim: 100
 nCrowders: 9   
-crowderRad: 8  # um
+crowderRad:  25 # um
 crowderDim: 100 # um
-crowderAttr: 0.
+crowderAttr: 1.
 
 nUpdates: 10000 # to match with exptl number of frames 
 friction: 100 # [1/ps] (time is in no relation to expt, treat as unitless here)
