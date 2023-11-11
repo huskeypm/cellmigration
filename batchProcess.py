@@ -20,6 +20,7 @@ class empty:pass
 #######
 # user defined for now 
 path="/home/pkh-lab-shared/migration/231004/"
+path="/home/pkh-lab-shared/migration/231110/"
 #path=""
 
 ########
@@ -63,7 +64,7 @@ def CalcProbDist(traj, mask='@RC',display=False):
   kT = 1
   pmf = -np.log(p) * kT 
 
-  display=True
+  #display=True
   if display:
     plt.figure()
     plt.pcolormesh(X, Y, p.T) # probably T is appropriate here 
@@ -92,13 +93,14 @@ def CalcFlux(traj, mask='@RC',display=False):
   xThresh = -0.
 
   
-  plt.figure()
-  diffs = traj.xyz[-1,indices,0] 
-  diffs -= traj.xyz[0,indices,0] 
-  #print(traj.xyz[0,indices,0])
-  #print(traj.xyz[-1,indices,0])
-  plt.hist(diffs)
-  plt.gcf().savefig("diffs.png") 
+  if display: 
+    plt.figure()
+    diffs = traj.xyz[-1,indices,0] 
+    diffs -= traj.xyz[0,indices,0] 
+    #print(traj.xyz[0,indices,0])
+    #print(traj.xyz[-1,indices,0])
+    plt.hist(diffs)
+    plt.gcf().savefig("diffs.png") 
   
 
 
@@ -131,7 +133,7 @@ def CalcFlux(traj, mask='@RC',display=False):
 
   return JA         
 
-def CalcD(traj,mask='@RC',csvName=None):
+def CalcD(traj,mask='@RC',csvName=None, display=False):
   rmsdAll = pt.rmsd(traj, mask='@RC', ref=0)
   rmsd = rmsdAll[equilFrame:]
   tEnd = np.shape(rmsd)[0]
@@ -150,6 +152,7 @@ def CalcD(traj,mask='@RC',csvName=None):
     csv[:,1] = rmsd
     np.savetxt(csvName+".csv",csv)   
 
+  if display: 
     plt.figure()
     plt.plot(ts,rmsd)
     plt.gcf().savefig(csvName+".png")
@@ -203,7 +206,8 @@ def ProcessTraj(caseName,display=False):
 ## 
 
 # reads the default params and those in the yaml file 
-def processYamls(figName,yamlNamePrefix="*",single=False): 
+def processYamls(figName,yamlNamePrefix="*",prefixOptions=None,# can list cellAttr etc to fine tune search 
+        single=False): 
 
   # get names
   if single:
@@ -215,6 +219,13 @@ def processYamls(figName,yamlNamePrefix="*",single=False):
     except:
       raise RuntimeError("No files found") 
 
+  if prefixOptions is not None:
+      yamlNames=[]
+      for opt in prefixOptions:
+        globTag = path+"/"+yamlNamePrefix+'_%s*yaml'%opt
+        yamlNames+=glob.glob(globTag)
+        
+
   #print(globTag) 
   #print(yamlNames)
   
@@ -222,6 +233,7 @@ def processYamls(figName,yamlNamePrefix="*",single=False):
           columns=["trajName","tag","condVal","D","flux*A","Vol Frac"]
           ) 
 
+  print(yamlNames[0]) 
   for yamlName in yamlNames:
       # open yaml
       #yamlName = path+"/"+yamlName

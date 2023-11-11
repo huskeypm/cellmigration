@@ -131,22 +131,22 @@ class Params():
     paramDict["xScale"]   = 100.   # scale for chemoattractant gradient 
     paramDict["frameRate"]=   1.  # [1 min/update]
 
-    paramDict["nParticles"] = 10  
+    paramDict["nCells"] = 10  
     paramDict["cellRad"] = 10.    # [um] cell radius  (seems too small) 
     paramDict["cellAttr"]=1.   # [] attraction between crowder and cell (vdw representation) 
     paramDict["cellChg"]= 0.   # [] 'electrostatic charge' (just for debugging)                        
 
     paramDict["nCrowders"] = 1  
-    paramDict["crowderRad"]= 25. # [um]
+    paramDict["crowderRad"]= 15. # [um]
     paramDict["crowderAttr"]=1.   # [] attraction between crowder and cell (vdw representation) 
     paramDict["crowderChg"]= 0.   # [] 'electrostatic charge' (just for debugging)                        
-
+    paramDict["tag"]="run"
     paramDict["outName"]="test"
 
     # system params (can probably leave these alone in most cases
     paramDict["chemoAttr"]      = 1.     # conc. of chemoattractant 
     paramDict["domainDim"]    = 10  # FOR NOW, KEEP PARTICLES WITHIN 99 for PDB [nm/um] dimensions of domain  
-    paramDict["crowderDim"]    = 5   # [nm/um] dimensions of domain containing crowders (square)  
+    paramDict["crowderDim"]    = None   # [nm/um] dimensions of domain containing crowders (square)  
     paramDict["nInteg"] = 100  # integration step per cycle
     paramDict["mass"] = 1.0 * dalton
     paramDict["temperature"] = 298 * kelvin
@@ -154,6 +154,10 @@ class Params():
 
     # store all values 
     self.paramDict = paramDict
+     
+  def update(self):
+    if self.paramDict["crowderDim"] is None:
+        self.paramDict["crowderDim"]=self.paramDict["domainDim"]
 
 # allocate instance 
 params = Params()
@@ -186,16 +190,17 @@ def runBD(
           raise RuntimeError(key+" is now deprecated. Use outName instead")
       print("Adding %s="%(key) , auxParams[key])
 
+  params.update()
     
   # place particles 
   # TODO: start w preequilibrated box or get cells from expt 
-  nParticles = int(paramDict["nParticles"])
+  nCells = int(paramDict["nCells"])
   nCrowders = int(paramDict["nCrowders"])
 
 
   import lattice 
   crowderPos, cellPos = lattice.GenerateCrowdedLattice(
-          nCrowders,nParticles,
+          nCrowders,nCells,
           crowdedDim=paramDict["crowderDim"], # [um] dimensions of domain containing crowders (square)  
           outerDim=paramDict["domainDim"]
           )  # generate crowders
@@ -207,7 +212,7 @@ def runBD(
     nCrowders = newCrowderPos 
 
   # cells first, then crowders
-  nTot = nParticles + nCrowders
+  nTot = nCells + nCrowders
   startingPositions = np.concatenate((cellPos,crowderPos))
   #print(np.shape(crowderPos))
   #print(np.shape(cellPos))
@@ -234,7 +239,7 @@ def runBD(
   # define arbitrary pdb
   nm_to_Ang=10
   sp_Ang = startingPositions*nm_to_Ang # default is nm in program, but pdb/dcd use Ang     
-  calc.genPDBWrapper(pdbFileName,nParticles,nCrowders,sp_Ang)
+  calc.genPDBWrapper(pdbFileName,nCells,nCrowders,sp_Ang)
   #calc.genPDBWrapper(pdbFileName,nTot,startingPositions)
   # add to openmm
   pdb = PDBFile(pdbFileName) 
@@ -253,7 +258,7 @@ def runBD(
   # better fix for this????
   customforce = CustomForce(paramDict)
   cfi=0
-  for i in range(nParticles):      
+  for i in range(nCells):      
       system.addParticle(paramDict["mass"])
       customforce.addParticle(cfi, [])
       cfi+=1
@@ -267,7 +272,7 @@ def runBD(
 
   
   nonbond = mm.NonbondedForce()
-  for i in range(nParticles):      
+  for i in range(nCells):      
      # chg, LJ sigma (nm), well-depth (kJ)
     [q,d,w] = paramDict["cellChg"], paramDict['cellRad'], paramDict['cellAttr']
     nonbond.addParticle(q,d,w)                
