@@ -1,4 +1,15 @@
-Use writeInputs for creating appropriate yaml files
+Use writeInputs for creating appropriate yaml files from templates 
+
+* Setup
+make a reference file that includes ATP and crowders
+ templatefull.yaml
+
+* Batch processing 
+- edit master.ipynb to run/process jobs
+- upload/process files with colab notebook mentioned below 
+
+
+
 
 Instructions are inside the script 
 
@@ -27,3 +38,4 @@ https://colab.research.google.com/drive/1AZdQw3q9cdjF7HGfCZCfOkKR7idzIYLD#scroll
 
 
 
+exptl.yaml <- reproduces experimentally-observed diffusion

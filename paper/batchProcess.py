@@ -20,6 +20,7 @@ class empty:pass
 #######
 # user defined for now 
 path="/home/pkh-lab-shared/migration/231004/"
+#path=""
 
 ########
 equilFrame = 400
@@ -29,12 +30,59 @@ dt = 1.
 ## 
 ## FUNC
 ##
-## get flux
-def GetFlux(traj, mask='@RC',display=False):
+def CalcRDF(traj,
+            mask1, # solvent
+            mask2, # solute
+            space=0.1,
+            bins=20):
+    #radial = pt.rdf(traj, solvent_mask=':WAT@O', solute_mask=':WAT@O', bin_spacing=0.2, maximum=12.)
+    radial = pt.rdf(traj, solvent_mask=mask1, solute_mask=mask2, bin_spacing=space, maximum=bins) 
+
+    return radial 
+
+
+def CalcProbDist(traj, mask='@RC',display=False):
 # for each particle, get dx in all directions, provide dt as input
 # select particles in some neighborhood of y=0?
 # grab dx along flux direction
 # sum(dx) / delta y
+  numFrames = (np.shape(traj.xyz))[0]
+
+  ## get cells
+  indices = pt.select_atoms(traj.top, mask)
+
+  xs = traj.xyz[0:,indices,0]
+  xs = np.ndarray.flatten(xs)  # n particles x m timesteps 
+  ys = traj.xyz[0:,indices,1]
+  ys = np.ndarray.flatten(ys)  # n particles x m timesteps 
+
+  p,x,y= np.histogram2d(xs,ys)
+  X, Y = np.meshgrid(x, y)
+
+  # get PMF
+  kT = 1
+  pmf = -np.log(p) * kT 
+
+  display=True
+  if display:
+    plt.figure()
+    plt.pcolormesh(X, Y, p.T) # probably T is appropriate here 
+    plt.gcf().savefig("prob.png",dpi=300)
+
+    plt.figure()
+    plt.pcolormesh(X, Y, pmf.T) # probably T is appropriate here 
+    plt.gcf().savefig("pmf.png",dpi=300)
+
+  return p,X,Y
+
+
+## get flux
+def CalcFlux(traj, mask='@RC',display=False):
+# for each particle, get dx in all directions, provide dt as input
+# select particles in some neighborhood of y=0?
+# grab dx along flux direction
+# sum(dx) / delta y
+  numFrames = (np.shape(traj.xyz))[0]
 
   ## get cells 
   indices = pt.select_atoms(traj.top, mask) 
@@ -42,8 +90,21 @@ def GetFlux(traj, mask='@RC',display=False):
   # xyz: frames, natoms, coords
   #print(traj.xyz[2,:,0])
   xThresh = -0.
+
+  
+  plt.figure()
+  diffs = traj.xyz[-1,indices,0] 
+  diffs -= traj.xyz[0,indices,0] 
+  #print(traj.xyz[0,indices,0])
+  #print(traj.xyz[-1,indices,0])
+  plt.hist(diffs)
+  plt.gcf().savefig("diffs.png") 
+  
+
+
   
   # below Thresh (only need to track one 'compartment' for now since we are dividing the space into two sections
+  # along x direction 
   #l =np.array(traj.xyz[:,0,0] < xThresh, dtype=int) 
   #r =np.array(traj.xyz[:,0,0] >=xThresh, dtype=int) 
   #print(np.sum(l),np.sum(r))
@@ -62,7 +123,7 @@ def GetFlux(traj, mask='@RC',display=False):
   #plt.plot(x,y)
   #plt.gcf().savefig("testxy.png") 
   if display:
-    print(l[0],l[-1],np.sum(fluxArea),np.average(fluxArea)*320) # 320 frames 
+    print(l[0],l[-1],np.sum(fluxArea),np.average(fluxArea)*numFrames) # 320 frames 
     plt.plot(l,label="#particles in x<thresh")     
     plt.plot(fluxArea,label="flux*area")
     plt.legend(loc=0)
@@ -70,7 +131,7 @@ def GetFlux(traj, mask='@RC',display=False):
 
   return JA         
 
-def GetD(traj,mask='@RC'):
+def CalcD(traj,mask='@RC',csvName=None):
   rmsdAll = pt.rmsd(traj, mask='@RC', ref=0)
   rmsd = rmsdAll[equilFrame:]
   tEnd = np.shape(rmsd)[0]
@@ -82,43 +143,85 @@ def GetD(traj,mask='@RC'):
   #plt.plot(ts,ts*slope+intercept)
   #
 
+  if csvName is not None:
+    dim = np.shape(rmsd)[0]
+    csv = np.reshape(np.zeros(dim*2),[dim,2])
+    csv[:,0] = ts
+    csv[:,1] = rmsd
+    np.savetxt(csvName+".csv",csv)   
+
+    plt.figure()
+    plt.plot(ts,rmsd)
+    plt.gcf().savefig(csvName+".png")
+
   # x**2 = 4*D*t
   #      = slope * t ==> D = slope/4.
   Di = slope/4.
   return Di 
 
+# assumes cylindrical inclusions 
+def CalcVolFrac(auxParams): 
+  d = auxParams['domainDim']
+  n = auxParams['nCrowders']
+  r = auxParams['crowderRad']
+
+  volFrac = d*d - n*np.pi*r*r  # since domain is square
+  #print(d)
+  #print(n,r)
+  #print(n*np.pi*r*r)
+  volFrac /= d*d                
+
+  return volFrac 
+
 # casename should include full path 
-def ProcessTraj(caseName,display=False): 
+def LoadTraj(caseName):
     # load
     try:
       dcd=caseName+".dcd"; pdb=caseName+".pdb"
       traj = pt.iterload(dcd,pdb)
     except:
       raise RuntimeError("You're likely missing a file like %s"%dcd)
+    print("Loaded %s"%dcd)
+    return traj
 
-    ## get D    
 
-    Di=GetD(traj,mask='@RC')
-    JA=GetFlux(traj,mask='@RC',display=display)
-    print(Di,JA) 
+def ProcessTraj(caseName,display=False): 
+    # LoadTraj
+    traj = LoadTraj(caseName)
+
+    ## get J,D    
+    Di=CalcD(traj,mask='@RC',csvName=caseName)                        
+    JA=CalcFlux(traj,mask='@RC',display=display)
+    print("Di %f J %f"%(Di,JA))
+
+    # get 2D histogram of populations
+    CalcProbDist(traj,mask='@RC')
     return Di,JA 
 
 ##
 ## MAIN 
 ## 
-def doit(figName,yamlNamePrefix="*"): 
+
+# reads the default params and those in the yaml file 
+def processYamls(figName,yamlNamePrefix="*",single=False): 
 
   # get names
-  globTag = path+"/"+yamlNamePrefix+'*yaml'
-  try: 
-    yamlNames = glob.glob(globTag)
-  except:
-    raise RuntimeError("No files found") 
+  if single:
+      yamlNames=[yamlNamePrefix+".yaml"]
+  else: 
+    globTag = path+"/"+yamlNamePrefix+'*yaml'
+    try: 
+      yamlNames = glob.glob(globTag)
+    except:
+      raise RuntimeError("No files found") 
 
   #print(globTag) 
   #print(yamlNames)
   
-  df = pd.DataFrame(columns=["trajName","tag","condVal","D","flux*A"]) 
+  df = pd.DataFrame(
+          columns=["trajName","tag","condVal","D","flux*A","Vol Frac"]
+          ) 
+
   for yamlName in yamlNames:
       # open yaml
       #yamlName = path+"/"+yamlName
@@ -127,21 +230,34 @@ def doit(figName,yamlNamePrefix="*"):
       # get output name 
       trajName = auxParams['outName']                   
       print(trajName) 
+
+      # compute vol frac
+      volFrac = CalcVolFrac(auxParams)
+
       #trajNames.append(trajName) 
       # get 'tag'
-      tag = auxParams['tag']
       # get cond value 
-      condVal = auxParams[tag]
+      try:
+        tag = auxParams['tag']
+        condVal = auxParams[tag]
+      except:
+        tag = 'tag'
+        condVal=1.
       print(tag,condVal)
   
       # process 
-      Di,JA = ProcessTraj(trajName) 
+      display = False
+      if single:
+          display=True
+      Di,JA = ProcessTraj(trajName,display=display) 
   
       # add to dataframe 
-      df.loc[len(df.index)] = [trajName, tag, condVal,Di,JA]
+      df.loc[len(df.index)] = [trajName, tag, condVal,Di,JA,volFrac]
+  
+  if single:
+      return Di,JA
   
   print(df)
-  
   outCsv = path+figName+".csv"       
   print("printed %s"%outCsv)
   df.to_csv(outCsv)               
@@ -160,7 +276,7 @@ Purpose:
  
 Usage:
 """
-  msg+="  %s -fig4/-fig5/-single [yaml]" % (scriptName)
+  msg+="  %s -fig4/-fig5/-single [yaml/dcdprefix]" % (scriptName)
   msg+="""
   
  
@@ -183,19 +299,20 @@ if __name__ == "__main__":
   for i,arg in enumerate(sys.argv):
     if(arg=="-fig4"):
       figName = arg.replace("-","")
-      doit(figName,yamlNamePrefix="noatp_")
-      doit(figName+"atp",yamlNamePrefix="atp_") 
+      processYamls(figName,yamlNamePrefix="noatp_")
+      processYamls(figName+"atp",yamlNamePrefix="atp_") 
       quit() 
 
     elif(arg=="-fig5"):
       figName = arg.replace("-","")
-      doit(figName,yamlNamePrefix="crwdnoatp_")   
-      doit(figName+"atp",yamlNamePrefix="crwdatp_")
+      processYamls(figName,yamlNamePrefix="crwdnoatp_")   
+      processYamls(figName+"atp",yamlNamePrefix="crwdatp_")
       quit()
 
     elif(arg=="-single"): 
-      trajName=sys.argv[i+1]#
-      Di,JA = ProcessTraj(trajName,display=True)
+      yamlName=sys.argv[i+1]#
+      Di,JA = processYamls("test.png",yamlName,single =True)
+      #Di,JA = ProcessTraj(trajName,display=True)
       quit()
 
   

@@ -8,7 +8,11 @@ def GenerateLattice(
         dim
         ):
 
-  latticeSpace = dim/nRow
+  try:
+    latticeSpace = dim/(nRow-1)
+  except:
+    latticeSpace = dim
+
   
   latticePts = np.zeros([nLattice,3]) 
   for i in range(nLattice):
@@ -26,13 +30,21 @@ def GenerateLattice(
 
 def GenerateCrowderLattice(
   nParticles,
+  crowderRad=1.,
   dim=20):
   """ 
   Places crowders on a regular lattice
   """
-
   nRow = int( np.ceil( np.sqrt( nParticles ) )  )
   nLattice=nRow**2
+  try: 
+    width=dim/(nRow-1)
+  except:
+    width=1e9
+  diam = 2*crowderRad
+
+  if(diam>(width-0.01)):
+      raise RuntimeError("Crowders are too tightly placed; check crowderRad/crowderDomain")
 
   latticePts = GenerateLattice(nLattice,nRow,dim)
 
@@ -45,6 +57,7 @@ def GenerateRandomLattice(
   crowderPosns,   # nx3 array of crowder coordinates 
   crowderRad = 10.,
   nParticles = 50,
+  particleRad= 1, 
   dim =  30 # [um]     This should be passed in somewhere  
   ) : 
   """ 
@@ -123,15 +136,18 @@ def GenerateCrowdedLattice(
   """
   Combines placement of crowders and cells onto regular lattice
   """
+  crowderRad = 10.
   crowderPos = GenerateCrowderLattice(
     nCrowders, 
+    crowderRad = crowderRad,
     dim=crowdedDim)
 
-  print(outerDim) 
+  #print(outerDim) 
   allCoords = GenerateRandomLattice( 
     crowderPosns = crowderPos, # where crowder is located 
-    crowderRad = 10.,
+    crowderRad = crowderRad,
     nParticles = nCells,
+    particleRad = 1.,
     dim = outerDim # [um]
     ) 
 

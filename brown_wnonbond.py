@@ -32,6 +32,7 @@ class CustomForce(mm.CustomExternalForce):
     bb = [5e-3]
     XX = [0] # need to adjust this to the domain size 
     YY = [0]
+    # z - potential is defined below 
 
 
     def __init__(self,
@@ -121,7 +122,7 @@ class Params():
 
     paramDict["nParticles"] = 10  
     paramDict["nCrowders"] = 1  
-    paramDict["friction"] = ( 50 / picosecond ) # rescaling to match exptl data PKH  
+    #paramDict["friction"] = ( 50 / picosecond ) # rescaling to match exptl data PKH  
     paramDict["friction"] = ( 50              ) # rescaling to match exptl data PKH  
     paramDict["timestep"] = 10.0 * femtosecond# 1e-11 s --> * 100 --> 1e-9 [ns] 
                                 #    72 s --> &*100 --> 7200 [s] (2hrs)     

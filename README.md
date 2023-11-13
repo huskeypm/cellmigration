@@ -1,9 +1,7 @@
 # cellmigration
-An openmm-based cell simulator
-
-Originally b ased on the OpenmmKant repo created by Ben Chun 
-
-Code for running langevin particle simulations
+- An openmm-based cell simulator
+- ''Originally based on the OpenmmKant repo created by Ben Chun''
+- ''Code for running langevin particle simulations''
 
 
 # Installation
@@ -74,21 +72,22 @@ python3 brown_wnonbond.py -yamlFile FILE.yaml -run
 This will print all of the parameters in csv format as well as an output yaml file
 
 
+## SSH 
+ssh -L localhost:8890:localhost:8888    pkekeneshuskey@kant.luc.edu
+
 ## TODO
 - RESOLVED There is some kind of problem with the z-constraint. Compare brown_wnonbond.py z coordinates relative to openmuller.py in the tests directory 
-- PBCs in Y direction should be added 
-- implement flux calculation 
-- piecewise continuous functions? (this doesn't appear to be supported 
-
-#TOFIX
-- program fails with crowderDim>100
+- CANCEL PBCs in Y direction should be added 
+- DONE implement flux calculation 
+- DONE piecewise continuous functions? (this doesn't appear to be supported 
+- DONE program fails with crowderDim>100
 
 
-## Fitting procedure
+## Fitting procedure (need to update) 
 I adjusted the nUpdates parameter to equal the number of frames taken by the microscope
 The framerate parameter is set to #/min 
-The distance units in the code are assumed to be [um]
-The fraction parameter was adjusted s.t. the MSD at the last frame was close to the expt value
+The distance units in the code are assumed to be [um] though openmm assumes [nm]
+The friction parameter was adjusted s.t. the MSD at the last frame was close to the expt value
 
 ###############################################
 ## Other examples (Deprecated for now) 

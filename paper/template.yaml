@@ -1,12 +1,14 @@
 nCrowders: 1   
-crowderRad: 10.  # [um]
+particleRad: 0.1 # um 
+crowderRad: 5  # um
+crowderDim: 25 # um
 nParticles: 20  # adjust me to mirror exptl data 
-cellRad: 0.1    # [um] cell radius  (seems too small) 
-cellAttr: 1.   # [] attraction between crowder and cell (vdw representation)
-nUpdates: 320 # to match with exptl number of frames 
-friction:   2 # [1/ps] (time is in no relation to expt, treat as unitless here)
+nUpdates: 10000 # to match with exptl number of frames 
+domainDim: 100
+friction: 100 # [1/ps] (time is in no relation to expt, treat as unitless here)
+containmentPotential: square   # how to contain particles 
 xPotential: False   # [True/False]
 xScale: 0.1        # scale for chemoattractant gradient (when xpotential is true)  
 yPotential: False # [True/False] 
-outName: noatp # no underscore 
+outName: long 
 
