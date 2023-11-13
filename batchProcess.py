@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 import matplotlib.pylab as plt
+import brown_util as bu
 import numpy as np
 import pytraj as pt
 import yaml 
 import pandas as pd
 import glob
+
+print("SHOULD PULL INTO BU") 
 
 
 # In[5]:
@@ -57,21 +60,29 @@ def CalcProbDist(traj, mask='@RC',display=False):
   ys = traj.xyz[0:,indices,1]
   ys = np.ndarray.flatten(ys)  # n particles x m timesteps 
 
-  p,x,y= np.histogram2d(xs,ys)
+  p,x,y= np.histogram2d(xs,ys,density=True)
   X, Y = np.meshgrid(x, y)
 
   # get PMF
   kT = 1
+  thresh=1e-9
+  p[p<thresh]=thresh
   pmf = -np.log(p) * kT 
+  pmf-=np.min(pmf) 
+
 
   #display=True
   if display:
     plt.figure()
+    plt.axis('equal')
     plt.pcolormesh(X, Y, p.T) # probably T is appropriate here 
+    plt.colorbar()
     plt.gcf().savefig("prob.png",dpi=300)
 
     plt.figure()
+    plt.axis('equal')
     plt.pcolormesh(X, Y, pmf.T) # probably T is appropriate here 
+    plt.colorbar()
     plt.gcf().savefig("pmf.png",dpi=300)
 
   return p,X,Y
@@ -168,11 +179,7 @@ def CalcVolFrac(auxParams):
   n = auxParams['nCrowders']
   r = auxParams['crowderRad']
 
-  volFrac = d*d - n*np.pi*r*r  # since domain is square
-  #print(d)
-  #print(n,r)
-  #print(n*np.pi*r*r)
-  volFrac /= d*d                
+  volFrac = bu.CalcVolFrac(n,d,r)
 
   return volFrac 
 
@@ -198,7 +205,7 @@ def ProcessTraj(caseName,display=False):
     print("Di %f J %f"%(Di,JA))
 
     # get 2D histogram of populations
-    CalcProbDist(traj,mask='@RC')
+    CalcProbDist(traj,mask='@RC',display=display)
     return Di,JA 
 
 ##
@@ -207,7 +214,7 @@ def ProcessTraj(caseName,display=False):
 
 # reads the default params and those in the yaml file 
 def processYamls(figName,yamlNamePrefix="*",prefixOptions=None,# can list cellAttr etc to fine tune search 
-        single=False): 
+        single=False,display=True): 
 
   # get names
   if single:
@@ -233,7 +240,7 @@ def processYamls(figName,yamlNamePrefix="*",prefixOptions=None,# can list cellAt
           columns=["trajName","tag","condVal","D","flux*A","Vol Frac"]
           ) 
 
-  print(yamlNames[0]) 
+  #print(yamlNames[0]) 
   for yamlName in yamlNames:
       # open yaml
       #yamlName = path+"/"+yamlName
@@ -241,7 +248,7 @@ def processYamls(figName,yamlNamePrefix="*",prefixOptions=None,# can list cellAt
         auxParams = yaml.safe_load(file)
       # get output name 
       trajName = auxParams['outName']                   
-      print(trajName) 
+      #print(trajName) 
 
       # compute vol frac
       volFrac = CalcVolFrac(auxParams)
@@ -255,12 +262,9 @@ def processYamls(figName,yamlNamePrefix="*",prefixOptions=None,# can list cellAt
       except:
         tag = 'tag'
         condVal=1.
-      print(tag,condVal)
+      #print(tag,condVal)
   
       # process 
-      display = False
-      if single:
-          display=True
       Di,JA = ProcessTraj(trajName,display=display) 
   
       # add to dataframe 
@@ -323,7 +327,7 @@ if __name__ == "__main__":
 
     elif(arg=="-single"): 
       yamlName=sys.argv[i+1]#
-      Di,JA = processYamls("test.png",yamlName,single =True)
+      Di,JA = processYamls("test.png",yamlName,single =True,display=True)
       #Di,JA = ProcessTraj(trajName,display=True)
       quit()
 

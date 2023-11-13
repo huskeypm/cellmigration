@@ -19,6 +19,7 @@ from simtk.openmm.app import *
 # otherwise 
 #import openmm as mm
 #from openmm.app import * # PDBFile, DCDReporter
+import lattice 
 
 import matplotlib.pylab as plt
 import numpy as np
@@ -198,9 +199,9 @@ def runBD(
   nCrowders = int(paramDict["nCrowders"])
 
 
-  import lattice 
   crowderPos, cellPos = lattice.GenerateCrowdedLattice(
           nCrowders,nCells,
+          paramDict['crowderRad'],paramDict['cellRad'],
           crowdedDim=paramDict["crowderDim"], # [um] dimensions of domain containing crowders (square)  
           outerDim=paramDict["domainDim"]
           )  # generate crowders

@@ -5,20 +5,24 @@ import numpy as np
 def GenerateLattice(
         nLattice,
         nRow,
-        dim
+        dim,
+        effDim=0.    # if positive value, will deduct this from dim so as to fit in particles (usually pass in particle diam)  
         ):
+
+  if effDim>0:
+      dim-=effDim 
 
   try:
     latticeSpace = dim/(nRow-1)
   except:
     latticeSpace = dim
 
+
   
   latticePts = np.zeros([nLattice,3]) 
   for i in range(nLattice):
       xi = int( np.floor(i/nRow) )
       yi = int( i-xi*nRow )
-      #print(xi,yi)
       latticePts[i,0:2] = [xi*latticeSpace,yi*latticeSpace]
   
 
@@ -46,7 +50,7 @@ def GenerateCrowderLattice(
   if(diam>(width-0.01)):
       raise RuntimeError("Crowders are too tightly placed; check crowderRad/crowderDomain")
 
-  latticePts = GenerateLattice(nLattice,nRow,dim)
+  latticePts = GenerateLattice(nLattice,nRow,dim,effDim=diam)
 
   return(latticePts)
 
@@ -58,22 +62,19 @@ def GenerateRandomLattice(
   crowderRad = 10.,
   nParticles = 50,
   particleRad= 1, 
-  dim =  30 # [um]     This should be passed in somewhere  
+  dim =  30 # [um]    
   ) : 
   """ 
   Generates a distribution of cells that avoids placed crowders                 
   """
   nLattice = 100
   nRow     =  10 
-  latticePts = GenerateLattice(nLattice,nRow,dim)
+  latticePts = GenerateLattice(nLattice,nRow,dim,effDim=(particleRad*2))
   latticeIdxs= np.arange( np.shape(latticePts)[0])
 
   # typecast
   nParticles = int(nParticles)
 
-  #print(latticePts) 
-  #quit()
-  
   # find crowder positions that conflict w lattice 
   # PKH iterate over each crowder position 
   nCrowders = np.shape(crowderPosns)[0]
@@ -130,13 +131,14 @@ def GenerateRandomLattice(
 def GenerateCrowdedLattice(
     nCrowders, 
     nCells,
+    crowderRad=10.,
+    cellRad=1.,
     crowdedDim=30,
     outerDim = 50):
 
   """
   Combines placement of crowders and cells onto regular lattice
   """
-  crowderRad = 10.
   crowderPos = GenerateCrowderLattice(
     nCrowders, 
     crowderRad = crowderRad,
@@ -147,7 +149,7 @@ def GenerateCrowdedLattice(
     crowderPosns = crowderPos, # where crowder is located 
     crowderRad = crowderRad,
     nParticles = nCells,
-    particleRad = 1.,
+    particleRad = cellRad,
     dim = outerDim # [um]
     ) 
 

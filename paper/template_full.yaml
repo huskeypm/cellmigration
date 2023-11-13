@@ -1,6 +1,6 @@
 # corresponds to about a 75% occupied volume fraction if crowderrad=10 
 nCells: 20  # adjust me to mirror exptl data 
-cellRad:  8   # um 
+cellRad:  5   # um 
 cellAttr: 1.0   #
 nCrowders:  9   # since we double this, it is a good idea to make sure 2x this number is compatible w domain dimensions
 crowderRad: 15  # um
