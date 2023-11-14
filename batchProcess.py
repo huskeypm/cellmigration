@@ -146,9 +146,9 @@ def CalcFlux(traj, mask='@RC',display=False):
 
 def CalcD(traj,mask='@RC',csvName=None, display=False):
   # in A^2 
-  rmsdAll = pt.rmsd(traj, mask='@RC', ref=0)
-  rmsd = rmsdAll[equilFrame:]
-  msd = np.sqrt(rmsd) 
+  rmsd = pt.rmsd(traj, mask='@RC', ref=0)
+  print(rmsd[0:10])
+  msd = rmsd**2
   # in NM^2
   AA_to_NMNM=1e-2
   msd_NMNM = msd*AA_to_NMNM
@@ -158,7 +158,7 @@ def CalcD(traj,mask='@RC',csvName=None, display=False):
   ts_MIN = np.arange(tEnd) * dt
 
   # fit for D [nm^2/min]
-  slope,intercept= np.polyfit(ts_MIN, msd_NMNM, 1)
+  slope,intercept= np.polyfit(ts_MIN[equilFrame:],msd_NMNM[equilFrame:],1)
   #print(slope)
   #plt.plot(rmsd)
   #plt.plot(ts,ts*slope+intercept)
