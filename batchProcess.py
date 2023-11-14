@@ -29,7 +29,8 @@ path="/home/pkh-lab-shared/migration/231110/"
 ########
 equilFrame = 400
 equilFrame = 0
-dt = 1.
+FRAME_CONV = 0.1 # min/fr 
+dt = FRAME_CONV  # [min] 
 
 ## 
 ## FUNC
@@ -103,7 +104,6 @@ def CalcFlux(traj, mask='@RC',display=False):
   #print(traj.xyz[2,:,0])
   xThresh = -0.
 
-  
   if display: 
     plt.figure()
     diffs = traj.xyz[-1,indices,0] 
@@ -145,12 +145,20 @@ def CalcFlux(traj, mask='@RC',display=False):
   return JA         
 
 def CalcD(traj,mask='@RC',csvName=None, display=False):
+  # in A^2 
   rmsdAll = pt.rmsd(traj, mask='@RC', ref=0)
   rmsd = rmsdAll[equilFrame:]
+  msd = np.sqrt(rmsd) 
+  # in NM^2
+  AA_to_NMNM=1e-2
+  msd_NMNM = msd*AA_to_NMNM
+
+  # in XXX min/fr
   tEnd = np.shape(rmsd)[0]
-  ts = np.arange(tEnd) * dt
-  # fit for D
-  slope,intercept= np.polyfit(ts, rmsd, 1)
+  ts_MIN = np.arange(tEnd) * dt
+
+  # fit for D [nm^2/min]
+  slope,intercept= np.polyfit(ts_MIN, msd_NMNM, 1)
   #print(slope)
   #plt.plot(rmsd)
   #plt.plot(ts,ts*slope+intercept)
@@ -159,9 +167,9 @@ def CalcD(traj,mask='@RC',csvName=None, display=False):
   if csvName is not None:
     dim = np.shape(rmsd)[0]
     csv = np.reshape(np.zeros(dim*2),[dim,2])
-    csv[:,0] = ts
-    csv[:,1] = rmsd
-    np.savetxt(csvName+".csv",csv)   
+    csv[:,0] = ts_MIN 
+    csv[:,1] = msd_NMNM
+    np.savetxt(csvName+".csv",csv,header='time[min],msd[nmnm]')   
 
   if display: 
     plt.figure()

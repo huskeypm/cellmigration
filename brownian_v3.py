@@ -25,7 +25,7 @@ import numpy as np
 
 ## INIT 
 platform = mm.Platform.getPlatformByName('CUDA')
-properties = {'Precision': 'single'}
+properties = {'Precision': 'double'}
 
 
 min_per_hour = 60  #
