@@ -6,47 +6,43 @@
 
 # Installation
 ## Python packages via anaconda
-See http://docs.openmm.org/latest/userguide/application/01_getting_started.html
+- See http://docs.openmm.org/latest/userguide/application/01_getting_started.html
+- Create a new environment (seems cleaner) 
 ```
-conda install -c conda-forge openmm
+# conda install -c conda-forge openmm
+conda create -n openmm-env -c conda-forge openmm
 ```
 
 ## from CLI 
 - Check out the code 
 ```
-git clone https://github.com/bending456/OpenMMKant
+git clone https://github.com/ (this repo)                        
 ```
 
-- Revise the file config.bash to include the following environmental variables
 
+## conda env
+- Activate env
 ```
-export GOPATH=${HOME}/go
-export PATH=/usr/local/go/bin:${PATH}:${GOPATH}:/usr/local/go:${HOME}/anaconda3/bin
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/bchun/OpenMM/lib:/home/bchun/OpenMMpy2/lib:/home/bchun/OpenMM:/home/bchun/OpenMMpy2
-export JUPYTER_PATH=/home/bchun/anaconda3/bin
-export PATH=/usr/local/cuda-10.1/bin:/usr/local/cuda-10.1/bin:/home/bchun/.local/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/bchun/go:/usr/local/go:/home/bchun/anaconda3/bin:/home/bchun/.openmpi/bin:/home/bchun/.openmpi/bin
-export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64:/usr/local/cuda-10.1/lib64::/home/bchun/OpenMM/lib:/home/bchun/OpenMMpy2/lib:/home/bchun/OpenMM:/home/bchun/OpenMMpy2:/home/bchun/.openmpi/lib/:/home/bchun/.openmpi/lib/
+conda activate openmm-env
 ```
-
-- add config.bash to your environment
-```
-source config.bash
-```
-
 - Test the installation 
 ```
 python3 -c "import simtk"
+```
+- check to make sure nvidia is being used
+```
+nvidia-smi
 ```
 
 ## Execution 
 - It is recommended to run brown_wnonbond.py from the command line via 
 ```
-python3 brown_wnonbond.py -validation 
+python3 brownian_v3.py -validation 
 ```
 
 - To see the list of parameters used:
 ```
-python3 brown_wnonbond.py -printVar
+python3 brownian_v3.py -printVar
 ```
 
 

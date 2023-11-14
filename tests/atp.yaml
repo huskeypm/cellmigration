@@ -1,6 +1,6 @@
 # corresponds to about a 75% occupied volume fraction if crowderrad=10 
-nParticles: 20  # adjust me to mirror exptl data 
-particleRad: 1   # um 
+nCells: 20  # adjust me to mirror exptl data 
+cellRad: 1   # um 
 cellAttr: 0.
 domainDim: 100
 nCrowders: 9   

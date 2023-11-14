@@ -14,15 +14,19 @@ take the meaning of those numbers with a grain of salt.
 
 from simtk.unit import kelvin, picosecond, femtosecond, nanometer, dalton
 # if kant installastion
-import simtk.openmm as mm
-from simtk.openmm.app import *                    
+#import simtk.openmm as mm
+#from simtk.openmm.app import *                    
 # otherwise 
-#import openmm as mm
-#from openmm.app import * # PDBFile, DCDReporter
+import openmm as mm
+from openmm.app import * # PDBFile, DCDReporter
 import lattice 
-
-import matplotlib.pylab as plt
+import brown_util as bu
 import numpy as np
+
+## INIT 
+platform = mm.Platform.getPlatformByName('CUDA')
+properties = {'Precision': 'single'}
+
 
 min_per_hour = 60  #
 
@@ -232,7 +236,7 @@ def runBD(
   system = mm.System()
 
   ## define outputs for coordinates
-  import calculator as calc 
+  #import calculator as calc 
   trajOutPfx=paramDict["outName"]
   trajOutName = trajOutPfx+".pkl"
   pdbFileName = trajOutPfx+".pdb"
@@ -240,7 +244,7 @@ def runBD(
   # define arbitrary pdb
   nm_to_Ang=10
   sp_Ang = startingPositions*nm_to_Ang # default is nm in program, but pdb/dcd use Ang     
-  calc.genPDBWrapper(pdbFileName,nCells,nCrowders,sp_Ang)
+  bu.genPDBWrapper(pdbFileName,nCells,nCrowders,sp_Ang)
   #calc.genPDBWrapper(pdbFileName,nTot,startingPositions)
   # add to openmm
   pdb = PDBFile(pdbFileName) 
@@ -285,7 +289,7 @@ def runBD(
 
   #integrator = mm.LangevinIntegrator(temperature, friction, timestep)
   integrator = mm.BrownianIntegrator(paramDict["temperature"], paramDict["friction"], paramDict["timestep"])
-  simulation = Simulation(pdb.topology, system,integrator) 
+  simulation = Simulation(pdb.topology, system,integrator,platform,properties) 
   
   simulation.context.setPositions(startingPositions)
   simulation.context.setVelocitiesToTemperature(paramDict["temperature"])
@@ -362,8 +366,8 @@ def runBD(
   stop = timeit.default_timer()
   print('Time: ', stop - start)
 
-  if display:
-      plt.show() 
+  #if display:
+  #    plt.show() 
 
   # package data 
 
