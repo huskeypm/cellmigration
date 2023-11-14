@@ -151,7 +151,7 @@ class Params():
     paramDict["nInteg"] = 100  # integration step per cycle
     paramDict["mass"] = 1.0 * dalton
     paramDict["temperature"] = 298 * kelvin
-    paramDict['dumpSize'] = 100 
+    paramDict['dumpSize'] = 100 # make larger?  
 
     # store all values 
     self.paramDict = paramDict
