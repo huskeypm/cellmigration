@@ -310,12 +310,18 @@ def runBD(
   else:
     print("WARNING: not minimizing; should have per-crowder constraints") 
 
+  iters = nUpdates/10.
+  import timeit
+  start = timeit.default_timer()
+  diffMax=0.
   #
   # START ITERATOR 
   #
   print("Running dynamics") 
-  diffMax=0.
   for i in range(nUpdates): 
+      if (i % iters)==0:
+        print("(%d/10)..."%(i/iters+1))
+
       # get positions at ith cycle 
       x = simulation.context.getState(getPositions=True).getPositions(asNumpy=True).value_in_unit(nanometer)
 
@@ -347,12 +353,14 @@ def runBD(
 
       # 
       xprev = np.copy(x) 
-  if diffMax > np.min([paramDict["crowderRad"],paramDict["cellRad"]]):
-      print("Diff max %f"%diffMax)
-      print("WARNING: step size is greater than particle sizes, which may give bad results;increase friction") 
   #
   # END ITERATOR 
   #
+  if diffMax > np.min([paramDict["crowderRad"],paramDict["cellRad"]]):
+      print("Diff max %f"%diffMax)
+      print("WARNING: step size is greater than particle sizes, which may give bad results;increase friction") 
+  stop = timeit.default_timer()
+  print('Time: ', stop - start)
 
   if display:
       plt.show() 

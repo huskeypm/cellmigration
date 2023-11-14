@@ -101,11 +101,12 @@ def GenerateRandomLattice(
   allClashes = np.unique(allClashes)
 
   # remove conflicting entries 
-  cellIdx = np.delete(latticeIdxs,allClashes) 
-  latticeIdxs = cellIdx
+  if len(allClashes) > 0:
+    cellIdx = np.delete(latticeIdxs,allClashes) 
+  else:
+    cellIdx = latticeIdxs
 
   # store only those indices that are not in the violaters group 
-
   nCellIdx = np.shape(cellIdx)[0]
   if nCellIdx < nParticles:
       raise RuntimeError("Not enough spaces to place cells") 
