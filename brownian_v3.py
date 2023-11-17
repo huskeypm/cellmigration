@@ -366,7 +366,7 @@ def runBD(
       print("Diff max %f"%diffMax)
       print("WARNING: step size is greater than particle sizes, which may give bad results;increase friction") 
   stop = timeit.default_timer()
-  print('Time: ', stop - start)
+  print('Time(s): ', int(stop - start))
 
   #if display:
   #    plt.show() 

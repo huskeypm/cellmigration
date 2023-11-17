@@ -2,8 +2,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=5 
 #SBATCH --gres=gpu:1
-#SBATCH --time=1:00:00
-#SBATCH --job-name=cam1Equi
+#SBATCH --time=12:00:00
+#SBATCH --job-name=openmmcellmigr
 #SBATCH --mem=40G
 
 # load modules 
@@ -12,21 +12,20 @@ module load cuda11.3/toolkit/11.3.0
 
 # this was a conda instance that includes openmm
 conda activate SEEKR
-
-#export PATH="$PATH:/home/pkekeneshuskey/source/cellmigration/"
+export PYTHON=`which python` # /cm/shared/apps/anaconda3/envs/SEEKR/bin/python
 
 
 # assumes paths, etc are correct 
 # See readme 
-# exec  ~/source/cellmigration/brownian_v3.py
-RUNDIR=/data/pkekeneshuskey/231110/                     
-RUNFILE="testrun"  # in RUNDIR  
+export SRC=/home/pkekeneshuskey/source/cellmigration/
+export EXEC="$PYTHON $SRC/brownian_v3.py"
+export RUNDIR=/data/pkekeneshuskey/231117/                     
+export RUNFILE="run_a"  # in RUNDIR  
+
 cd $RUNDIR 
-#bash $RUNFILE
 #python -c "import openmm; print('imported')" 
 pwd 
 bash $RUNFILE
-#python3 /home/pkekeneshuskey/source/cellmigration/brownian_v3.py 
 
 # WARNING: need to copy files to TEMP/copy BACK
 

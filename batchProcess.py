@@ -192,13 +192,17 @@ def CalcVolFrac(auxParams):
   return volFrac 
 
 # casename should include full path 
-def LoadTraj(caseName):
+def LoadTraj(caseName,warningOnly=False):
     # load
     try:
       dcd=caseName+".dcd"; pdb=caseName+".pdb"
       traj = pt.iterload(dcd,pdb)
     except:
-      raise RuntimeError("You're likely missing a file like %s"%dcd)
+      if warningOnly:
+        print("You're likely missing a file like %s"%dcd)
+        return None 
+      else: 
+        raise RuntimeError("You're likely missing a file like %s"%dcd)
     print("Loaded %s"%dcd)
     return traj
 
@@ -221,8 +225,11 @@ def ProcessTraj(caseName,display=False):
 ## 
 
 # reads the default params and those in the yaml file 
-def processYamls(figName,yamlNamePrefix="*",prefixOptions=None,# can list cellAttr etc to fine tune search 
-        single=False,display=True): 
+def processYamls(figName,
+        path=path,
+        yamlNamePrefix="*",
+        prefixOptions=None,# can list cellAttr etc to fine tune search 
+        single=False,display=True,warningOnly=False): 
 
   # get names
   if single:
@@ -273,6 +280,9 @@ def processYamls(figName,yamlNamePrefix="*",prefixOptions=None,# can list cellAt
       #print(tag,condVal)
   
       # process 
+      if LoadTraj(trajName,warningOnly) is None:
+        continue 
+      
       Di,JA = ProcessTraj(trajName,display=display) 
   
       # add to dataframe 
@@ -300,7 +310,7 @@ Purpose:
  
 Usage:
 """
-  msg+="  %s -fig4/-fig5/-single [yaml/dcdprefix]" % (scriptName)
+  msg+="  %s -fig4/-fig5/-single [yaml/dcdprefix] -all" % (scriptName)
   msg+="""
   
  
@@ -339,11 +349,9 @@ if __name__ == "__main__":
       #Di,JA = ProcessTraj(trajName,display=True)
       quit()
 
-  
-
-
-
-
+    elif(arg=="-all"): 
+      processYamls("test.png",display=False,warningOnly=True,path="./")
+      quit()
 
   raise RuntimeError("Arguments not understood")
 
