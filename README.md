@@ -1,7 +1,7 @@
 # cellmigration
 - An openmm-based cell simulator
-- ''Originally based on the OpenmmKant repo created by Ben Chun''
-- ''Code for running langevin particle simulations''
+- Originally based on the OpenmmKant repo created by Ben Chun
+- Code for running langevin particle simulations
 
 
 # Installation
@@ -50,8 +50,8 @@ python3 brownian_v3.py -printVar
 ```
 python3 brownian_v3.py -yamlFile FILE.yaml -run
 ```
-
 - Example yaml files are provided in the source 
+- Run files for HPC (faust) are available in the ./run subdirectory
 
 ## Analysis
 - Trajectory files like test.pkl can be opened and analyzed using the notebook bd_sims.ipynb in ./tests. Note that an example for computing mean square displacements (MSD) is provided therein. 
@@ -81,4 +81,7 @@ The framerate parameter is set to #/min 1 fr/90s
 The distance units in the code are assumed to be [um] though openmm assumes [nm]
 The friction parameter was adjusted s.t. the MSD at the last frame was close to the expt value
 
-Old notes are contained in README_v1.md
+
+
+## Previous 
+- Old notes are contained in README_v1.md
