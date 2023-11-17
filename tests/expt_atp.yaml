@@ -14,11 +14,11 @@ domainDim: 200
 # IF WE ARE ASSUMING 3K sec is the actual length of the computed MSDs
 # 3000s->50 min->500 fr
 nUpdates: 500 # (320 fr  - 90s/fr --> 480 m --> 4800 10s/fr)              
-friction:  10 # [1/ps] (time is in no relation to expt, treat as unitless here)
+friction: 2.5 # [1/ps] (time is in no relation to expt, treat as unitless here)
 
 containmentPotential: None     # how to contain particles 
-xPotential: False   # [True/False]
+xPotential: True    # [True/False]
 xScale: 0.1        # scale for chemoattractant gradient (when xpotential is true)  
 yPotential: False # [True/False] 
-outName: expt
+outName: expt_atp
 
