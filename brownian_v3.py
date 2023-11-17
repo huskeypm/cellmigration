@@ -1,3 +1,4 @@
+#!/cm/shared/apps/anaconda3/bin/python3
 # adapted from https://gist.github.com/rmcgibbo/6094172
 # code also adapted from runner.py written by Ben Chun
 
@@ -12,12 +13,13 @@ that it affects the meaning of the temperature and kinetic energy. So
 take the meaning of those numbers with a grain of salt.
 """
 
-from simtk.unit import kelvin, picosecond, femtosecond, nanometer, dalton
+#from simtk.unit import kelvin, picosecond, femtosecond, nanometer, dalton
 # if kant installastion
 #import simtk.openmm as mm
 #from simtk.openmm.app import *                    
 # otherwise 
 import openmm as mm
+from openmm.unit import kelvin, picosecond, femtosecond, nanometer, dalton
 from openmm.app import * # PDBFile, DCDReporter
 import lattice 
 import brown_util as bu

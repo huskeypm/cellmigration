@@ -16,7 +16,7 @@ conda create -n openmm-env -c conda-forge openmm
 ## from CLI 
 - Check out the code 
 ```
-git clone https://github.com/huskeypm/cellmigration                   
+git clone git@github.com:huskeypm/cellmigration.git
 ```
 
 
