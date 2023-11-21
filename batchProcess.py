@@ -39,6 +39,12 @@ def ProcessTraj(caseName,display=False):
     # LoadTraj
     traj = bu.LoadTraj(caseName)
 
+    #, get RDF
+    mask1='@RC'
+    mask2=':28@AC'# last atom (crowder) 
+    bu.CalcRDF(traj,mask1=mask1,mask2=mask2)  
+
+
     ## get J,D    
     Di=bu.CalcD(traj,mask='@RC',csvName=caseName)                        
     JA=bu.CalcFlux(traj,mask='@RC',display=display)
@@ -46,6 +52,7 @@ def ProcessTraj(caseName,display=False):
 
     # get 2D histogram of populations
     bu.CalcProbDist(traj,mask='@RC',display=display)
+
     return Di,JA 
 
 ##
@@ -168,8 +175,8 @@ if __name__ == "__main__":
 
     elif(arg=="-single"): 
       yamlName=sys.argv[i+1]#
-      Di,JA = processYamls("test.png",yamlName,single =True,display=True)
-      #Di,JA = ProcessTraj(trajName,display=True)
+      #Di,JA = processYamls("test.png",yamlName,single =True,display=True)
+      Di,JA = ProcessTraj(yamlName,display=True)
       quit()
 
   

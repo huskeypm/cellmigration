@@ -8,6 +8,7 @@ FRAME_CONV = 0.1 # min/fr
 dt = FRAME_CONV  # [min] 
 kT = 1  # [kT] 
 thresh=1e-9
+AA_to_NM = 0.1
 
 ## 
 ## FUNC
@@ -18,8 +19,34 @@ def CalcRDF(traj,
             space=0.1,
             bins=20):
     #radial = pt.rdf(traj, solvent_mask=':WAT@O', solute_mask=':WAT@O', bin_spacing=0.2, maximum=12.)
-    radial = pt.rdf(traj, solvent_mask=mask1, solute_mask=mask2, bin_spacing=space, maximum=bins) 
+    """ 
+    Calculates radial distribution function
+    traj
+    mask1 - solvent
+    mask2 - solute 
+    """
+    # works 
+    #mask1='@1-20'    
+    #mask2='@28'
+    # works 
+    #mask1='@RC'    
+    #mask2=':28@AC'
 
+    # rdf 
+    radial = pt.rdf(traj, solvent_mask=mask1, solute_mask=mask2, 
+            bin_spacing=1,maximum=500 # space, maximum=bins
+            ) 
+
+    #print(np.shape(radial))
+    #print(radial)
+
+   
+    s = np.sum(radial[1])
+    plt.plot(radial[0]*AA_to_NM,radial[1]/s)
+    plt.xlabel("r [nm]") 
+    plt.ylabel("P") 
+    plt.title("RDF " + mask1 + " " + mask2)
+    plt.gcf().savefig("rdf.png",dpi=300) 
     return radial 
 
 def CalcProbDist(traj, mask='@RC',display=False):
@@ -118,7 +145,7 @@ def CalcVolFraction(
 def CalcD(traj,mask='@RC',csvName=None, display=False):
   # in A^2 
   rmsd = pt.rmsd(traj, mask='@RC', ref=0)
-  print(rmsd[0:10])
+  #print(rmsd[0:10])
   msd = rmsd**2
   # in NM^2
   AA_to_NMNM=1e-2
