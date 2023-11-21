@@ -1,4 +1,67 @@
 import numpy as np 
+import pytraj as pt
+import matplotlib.pylab as plt
+
+equilFrame = 400
+equilFrame = 0
+FRAME_CONV = 0.1 # min/fr 
+dt = FRAME_CONV  # [min] 
+kT = 1  # [kT] 
+thresh=1e-9
+
+## 
+## FUNC
+##
+def CalcRDF(traj,
+            mask1, # solvent
+            mask2, # solute
+            space=0.1,
+            bins=20):
+    #radial = pt.rdf(traj, solvent_mask=':WAT@O', solute_mask=':WAT@O', bin_spacing=0.2, maximum=12.)
+    radial = pt.rdf(traj, solvent_mask=mask1, solute_mask=mask2, bin_spacing=space, maximum=bins) 
+
+    return radial 
+
+def CalcProbDist(traj, mask='@RC',display=False):
+# for each particle, get dx in all directions, provide dt as input
+# select particles in some neighborhood of y=0?
+# grab dx along flux direction
+# sum(dx) / delta y
+  numFrames = (np.shape(traj.xyz))[0]
+
+  ## get cells
+  indices = pt.select_atoms(traj.top, mask)
+
+  xs = traj.xyz[0:,indices,0]
+  xs = np.ndarray.flatten(xs)  # n particles x m timesteps 
+  ys = traj.xyz[0:,indices,1]
+  ys = np.ndarray.flatten(ys)  # n particles x m timesteps 
+
+  bins = 100
+  p,x,y= np.histogram2d(xs,ys,bins=bins,density=True)
+  X, Y = np.meshgrid(x, y)
+
+  # get PMF
+  p[p<thresh]=thresh
+  pmf = -np.log(p) * kT 
+  pmf-=np.min(pmf) 
+
+
+  #display=True
+  if display:
+    plt.figure()
+    plt.axis('equal')
+    plt.pcolormesh(X, Y, p.T) # probably T is appropriate here 
+    plt.colorbar()
+    plt.gcf().savefig("prob.png",dpi=300)
+
+    plt.figure()
+    plt.axis('equal')
+    plt.pcolormesh(X, Y, pmf.T) # probably T is appropriate here 
+    plt.colorbar()
+    plt.gcf().savefig("pmf.png",dpi=300)
+
+  return p,X,Y
 
 def PlotStuff(
   msds,
@@ -22,7 +85,27 @@ def meanSquareDisplacements(xs, ys, nUpdates):
 
     return msds
 
-def CalcVolFrac(
+# casename should include full path 
+def LoadTraj(caseName):
+    # load
+    try:
+      dcd=caseName+".dcd"; pdb=caseName+".pdb"
+      traj = pt.iterload(dcd,pdb)
+    except:
+      raise RuntimeError("You're likely missing a file like %s"%dcd)
+    print("Loaded %s"%dcd)
+    return traj
+
+def CalcVolFrac(auxParams): 
+  d = auxParams['domainDim']
+  n = auxParams['nCrowders']
+  r = auxParams['crowderRad']
+
+  volFrac = CalcVolFraction(n,d,r)
+
+  return volFrac 
+
+def CalcVolFraction(
     nCrowder,
     dimRegion=200.,
     crowderRad=10.):
@@ -31,6 +114,105 @@ def CalcVolFrac(
     areaRegion= dimRegion**2
     volFrac= (areaRegion-areaCrowder)/areaRegion
     return volFrac
+
+def CalcD(traj,mask='@RC',csvName=None, display=False):
+  # in A^2 
+  rmsd = pt.rmsd(traj, mask='@RC', ref=0)
+  print(rmsd[0:10])
+  msd = rmsd**2
+  # in NM^2
+  AA_to_NMNM=1e-2
+  msd_NMNM = msd*AA_to_NMNM
+
+  # in XXX min/fr
+  tEnd = np.shape(rmsd)[0]
+  ts_MIN = np.arange(tEnd) * dt
+
+  # fit for D [nm^2/min]
+  slope,intercept= np.polyfit(ts_MIN[equilFrame:],msd_NMNM[equilFrame:],1)
+  #print(slope)
+  #plt.plot(rmsd)
+  #plt.plot(ts,ts*slope+intercept)
+  #
+
+  if csvName is not None:
+    dim = np.shape(rmsd)[0]
+    csv = np.reshape(np.zeros(dim*2),[dim,2])
+    csv[:,0] = ts_MIN 
+    csv[:,1] = msd_NMNM
+    np.savetxt(csvName+".csv",csv,header='time[min],msd[nmnm]')   
+
+  if display: 
+    plt.figure()
+    plt.plot(ts,rmsd)
+    plt.gcf().savefig(csvName+".png")
+
+  # x**2 = 4*D*t
+  #      = slope * t ==> D = slope/4.
+  Di = slope/4.
+  return Di 
+
+# assumes cylindrical inclusions 
+
+
+## get flux
+def CalcFlux(traj, mask='@RC',display=False):
+# for each particle, get dx in all directions, provide dt as input
+# select particles in some neighborhood of y=0?
+# grab dx along flux direction
+# sum(dx) / delta y
+  numFrames = (np.shape(traj.xyz))[0]
+
+  ## get cells 
+  indices = pt.select_atoms(traj.top, mask) 
+  
+  # xyz: frames, natoms, coords
+  #print(traj.xyz[2,:,0])
+  xThresh = -0.
+
+  if display: 
+    plt.figure()
+    diffs = traj.xyz[-1,indices,0] 
+    diffs -= traj.xyz[0,indices,0] 
+    #print(traj.xyz[0,indices,0])
+    #print(traj.xyz[-1,indices,0])
+    plt.hist(diffs)
+    plt.gcf().savefig("diffs.png") 
+  
+
+
+  
+  # below Thresh (only need to track one 'compartment' for now since we are dividing the space into two sections
+  # along x direction 
+  #l =np.array(traj.xyz[:,0,0] < xThresh, dtype=int) 
+  #r =np.array(traj.xyz[:,0,0] >=xThresh, dtype=int) 
+  #print(np.sum(l),np.sum(r))
+  l =np.array(traj.xyz[:,indices,0] < xThresh, dtype=int) 
+  l =np.sum(l,axis=1)
+  # if the population in the compartment changes between two times, then a particle has entered/left
+  diff = np.diff(l)  
+  fluxArea = diff/dt # not normalizing by area
+  JA = np.average(fluxArea)
+  if (l[-1] < 0.1*l[0]):
+      print("WARNING: compartment is nearly depleted/flux estimates may be unreliable") 
+  #print("J*A = %f "%JA)
+  
+  #x = traj.xyz[:,indices,0]
+  #y = traj.xyz[:,indices,1]
+  #plt.plot(x,y)
+  #plt.gcf().savefig("testxy.png") 
+  if display:
+    print(l[0],l[-1],np.sum(fluxArea),np.average(fluxArea)*numFrames) # 320 frames 
+    plt.plot(l,label="#particles in x<thresh")     
+    plt.plot(fluxArea,label="flux*area")
+    plt.legend(loc=0)
+    plt.gcf().savefig("test.png") 
+
+  return JA         
+
+
+
+
 
 def CalcMSD(     
   ts,
@@ -42,6 +224,7 @@ def CalcMSD(
   ts - len(ts) = num frames from microscope (assuming 1/min) 
   msds - [um]  
   """
+  raise RuntimeError("phase out") 
 
   from sklearn.linear_model import LinearRegression
   #print(np.shape(ts))

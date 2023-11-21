@@ -37,14 +37,20 @@ python3 process.py -yamlFile FILEN.yaml -run
 ## PARAMS 
 ##
 import yaml
-cmd = "python3 ../brown_wnonbond.py -yamlFile "
 
 varIter=5 # range of key values
 varRuns=3    # number of time each condition is run 
-path="./"   # path for outfiles 
-date="231004"
-path="/home/pkh-lab-shared/migration/"+date+"/"   # path for outfiles 
 
+class Params():
+    def __init__(self,
+      cmd = "python3 ../brown_wnonbond.py -yamlFile ",
+      path="/home/pkh-lab-shared/migration/test/"   # path for outfiles 
+            ):
+
+      self.cmd = cmd
+      self.path=path
+
+params=Params()
 
 ##
 ## Func 
@@ -66,6 +72,7 @@ def WriteYaml(contents, fileName,verbose=True):
 
 # for a given key, write rescaled calues 
 def WriteIterativeYaml(auxParams,daKey,varIter=3,varRuns=2):
+  print('path',params.path) 
   dflt = auxParams[daKey] 
   vals = RescaleValues(dflt,nIter=varIter,key=daKey) 
   # range of vals
@@ -81,11 +88,15 @@ def WriteIterativeYaml(auxParams,daKey,varIter=3,varRuns=2):
     # replicates per val 
     for run in range(varRuns):
       keyName="_%s%f_%.2d"%(daKey,val,run)
-      outParams['outName']=path+"/"+auxParams['outName']+keyName
+      #outParams['outName']=path+"/"+auxParams['outName']+keyName
+      #writeName = outParams['outName']+".yaml"
+      outParams['outName']=auxParams['outName']+keyName
       writeName = outParams['outName']+".yaml"
+      fullWriteName = params.path+"/"+writeName
+
       yaml.safe_dump(outParams, sort_keys=False)
-      WriteYaml(outParams,writeName,verbose=False)
-      print(cmd+writeName+" -run")
+      WriteYaml(outParams,fullWriteName,verbose=False)
+      print(params.cmd+" -yamlFile " + writeName+" -run")
     
 #!/usr/bin/env python
 ##
