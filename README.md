@@ -10,13 +10,13 @@
 - Create a new environment (seems cleaner) 
 ```
 # conda install -c conda-forge openmm
-conda create -n openmm-env -c conda-forge openmm
+conda create -n openmm-env -c conda-forge openmm pyyaml 
 ```
 
 ## from CLI 
 - Check out the code 
 ```
-git clone https://github.com/huskeypm/cellmigration                   
+git clone git@github.com:huskeypm/cellmigration.git
 ```
 
 
@@ -27,15 +27,15 @@ conda activate openmm-env
 ```
 - Test the installation 
 ```
-python3 -c "import simtk"
+python3 -c "import openmm"
 ```
-- check to make sure nvidia is being used
+- check to make sure nvidia is being used (if running on faust) 
 ```
 nvidia-smi
 ```
 
 ## Execution 
-- It is recommended to run brown_wnonbond.py from the command line via 
+- It is recommended to run the brownian .py from the command line via 
 ```
 python3 brownian_v3.py -validation 
 ```
@@ -51,7 +51,7 @@ python3 brownian_v3.py -printVar
 python3 brownian_v3.py -yamlFile FILE.yaml -run
 ```
 - Example yaml files are provided in the source 
-- Run files for HPC (faust) are available in the ./run subdirectory
+- Run files and README.md for HPC (faust) are available in the ./run subdirectory
 
 ## Analysis
 - Trajectory files like test.pkl can be opened and analyzed using the notebook bd_sims.ipynb in ./tests. Note that an example for computing mean square displacements (MSD) is provided therein. 
@@ -69,6 +69,10 @@ This will print all of the parameters in csv format as well as an output yaml fi
 ssh -L localhost:8890:localhost:8888    pkekeneshuskey@kant.luc.edu
 
 ## TODO
+- Can't get particle packing greater than 9/check that effectiveDim is helpful 
+- ATP gradient is small
+- Can we restrict particles to be in boundary left of the box 
+- fermi dirac potential from Y 
 - RESOLVED There is some kind of problem with the z-constraint. Compare brown_wnonbond.py z coordinates relative to openmuller.py in the tests directory 
 - CANCEL PBCs in Y direction should be added 
 - DONE implement flux calculation 

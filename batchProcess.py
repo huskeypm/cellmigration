@@ -7,9 +7,6 @@ import yaml
 import pandas as pd
 import glob
 
-print("SHOULD PULL INTO BU") 
-
-
 # In[5]:
 
 
@@ -44,6 +41,9 @@ def ProcessTraj(caseName,display=False):
     mask2=':28@AC'# last atom (crowder) 
     bu.CalcRDF(traj,mask1=mask1,mask2=mask2)  
 
+def ProcessTraj(caseName,display=False): 
+    # LoadTraj
+    traj = LoadTraj(caseName)
 
     ## get J,D    
     Di=bu.CalcD(traj,mask='@RC',csvName=caseName)                        
@@ -60,8 +60,11 @@ def ProcessTraj(caseName,display=False):
 ## 
 
 # reads the default params and those in the yaml file 
-def processYamls(figName,yamlNamePrefix="*",prefixOptions=None,# can list cellAttr etc to fine tune search 
-        single=False,display=True): 
+def processYamls(figName,
+        path=path,
+        yamlNamePrefix="*",
+        prefixOptions=None,# can list cellAttr etc to fine tune search 
+        single=False,display=True,warningOnly=False): 
 
   # get names
   yamlNamePrefix = yamlNamePrefix.replace(".yaml","")
@@ -113,6 +116,9 @@ def processYamls(figName,yamlNamePrefix="*",prefixOptions=None,# can list cellAt
       #print(tag,condVal)
   
       # process 
+      if LoadTraj(trajName,warningOnly) is None:
+        continue 
+      
       Di,JA = ProcessTraj(trajName,display=display) 
   
       # add to dataframe 
@@ -140,7 +146,7 @@ Purpose:
  
 Usage:
 """
-  msg+="  %s -fig4/-fig5/-single [yaml/dcdprefix]" % (scriptName)
+  msg+="  %s -fig4/-fig5/-single [yaml/dcdprefix] -all" % (scriptName)
   msg+="""
   
  
@@ -179,11 +185,9 @@ if __name__ == "__main__":
       Di,JA = ProcessTraj(yamlName,display=True)
       quit()
 
-  
-
-
-
-
+    elif(arg=="-all"): 
+      processYamls("test.png",display=False,warningOnly=True,path="./")
+      quit()
 
   raise RuntimeError("Arguments not understood")
 
