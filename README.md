@@ -10,7 +10,7 @@
 - Create a new environment (seems cleaner) 
 ```
 # conda install -c conda-forge openmm
-conda create -n openmm-env -c conda-forge openmm
+conda create -n openmm-env -c conda-forge openmm pyyaml 
 ```
 
 ## from CLI 
@@ -27,15 +27,15 @@ conda activate openmm-env
 ```
 - Test the installation 
 ```
-python3 -c "import simtk"
+python3 -c "import openmm"
 ```
-- check to make sure nvidia is being used
+- check to make sure nvidia is being used (if running on faust) 
 ```
 nvidia-smi
 ```
 
 ## Execution 
-- It is recommended to run brown_wnonbond.py from the command line via 
+- It is recommended to run the brownian .py from the command line via 
 ```
 python3 brownian_v3.py -validation 
 ```
@@ -69,6 +69,9 @@ This will print all of the parameters in csv format as well as an output yaml fi
 ssh -L localhost:8890:localhost:8888    pkekeneshuskey@kant.luc.edu
 
 ## TODO
+- Can't get particle packing greater than 9/check that effectiveDim is helpful 
+- ATP gradient is small
+- Can we restrict particles to be in boundary left of the box 
 - RESOLVED There is some kind of problem with the z-constraint. Compare brown_wnonbond.py z coordinates relative to openmuller.py in the tests directory 
 - CANCEL PBCs in Y direction should be added 
 - DONE implement flux calculation 

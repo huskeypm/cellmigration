@@ -26,8 +26,15 @@ import brown_util as bu
 import numpy as np
 
 ## INIT 
-platform = mm.Platform.getPlatformByName('CUDA')
-properties = {'Precision': 'double'}
+import platform as pf
+if pf.system()=='Darwin':
+  print("Running on mac; assuming no CUDA")
+  platform = mm.Platform.getPlatformByName('CPU')
+  properties = {}
+else:
+  print("Linux") 
+  platform = mm.Platform.getPlatformByName('CUDA')
+  properties = {'Precision': 'double'}
 
 
 min_per_hour = 60  #
@@ -147,6 +154,7 @@ class Params():
     paramDict["crowderRad"]= 15. # [um]
     paramDict["crowderAttr"]=1.   # [] attraction between crowder and cell (vdw representation) 
     paramDict["crowderChg"]= 0.   # [] 'electrostatic charge' (just for debugging)                        
+    paramDict["effectiveRad"] = None    # [nm] this is used when the attraction between crowder/cell yields effective radii that are smaller than expected.  
     paramDict["tag"]="run"
     paramDict["outName"]="test"
 
@@ -205,9 +213,14 @@ def runBD(
   nCrowders = int(paramDict["nCrowders"])
 
 
+  if paramDict["effectiveRad"] is None:
+    crowderRad = paramDict['crowderRad'] 
+  else:
+    crowderRad = paramDict['effectiveRad'] 
+
   crowderPos, cellPos = lattice.GenerateCrowdedLattice(
           nCrowders,nCells,
-          paramDict['crowderRad'],paramDict['cellRad'],
+          crowderRad,paramDict['cellRad'],
           crowdedDim=paramDict["crowderDim"], # [um] dimensions of domain containing crowders (square)  
           outerDim=paramDict["domainDim"]
           )  # generate crowders
