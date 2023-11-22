@@ -1,18 +1,19 @@
 # corresponds to about a 75% occupied volume fraction if crowderrad=10 
 nCells: 20  # adjust me to mirror exptl data 
-cellRad: 1   # um 
-cellAttr: 0.
+cellRad: 10   # um 
+cellAttr: 1.
 domainDim: 100
 nCrowders: 9   
-crowderRad: 8  # um
+crowderRad:  25 # um
 crowderDim: 100 # um
-crowderAttr: 0.
+crowderAttr: 1.
+effectiveRad: 10 # um 
 
 nUpdates: 10000 # to match with exptl number of frames 
 friction: 100 # [1/ps] (time is in no relation to expt, treat as unitless here)
 containmentPotential: square   # how to contain particles 
-xPotential: True    # [True/False]
-xScale: 1.        # scale for chemoattractant gradient (when xpotential is true)  
+xPotential: False   # [True/False]
+xScale: 0.1        # scale for chemoattractant gradient (when xpotential is true)  
 yPotential: False # [True/False] 
-outName: atp     
+outName: crowder 
 
