@@ -22,8 +22,11 @@ Workflow
 - be sure that the appropriate RUNFILE name is used in the faust submission file 
 ! Note: suggested to split the runfiles into subsets so can run on multiple nodes (i use split_files.pl)
 
-- jobs can be processed using batchProcess.py: 
-python /home/pkekeneshuskey/source/cellmigration/batchProcess.py  -all
+- jobs can be processed using batchProcess.py (from dir where files were run): 
+ python /home/pkekeneshuskey/source/cellmigration/batchProcess.py  -all
 
+on faust, use 
+  conda activate AmberTools23
+  python -c 'import pytraj'
 
-
+- after creating the output csv file in the previous step, the results can be processed via google colab
