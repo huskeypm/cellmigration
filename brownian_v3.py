@@ -5,6 +5,7 @@
 # Not convinced that the LJ terms are working appropriately, therefore 
 # I'm troublshooting based on the helloargon openmm example 
 # http://docs.openmm.org/latest/userguide/library/03_tutorials.html#helloargon-program
+import matplotlib.pylab as plt
 
 """
 Propagating 2D dynamics on the muller potential using OpenMM.
@@ -83,6 +84,7 @@ class CustomForce(mm.CustomExternalForce):
         self.MAXX[0]= pD["domainXDim"]/2.
         self.MINY[0]=-pD["domainYDim"]/2. # 4.
         self.MAXY[0]= pD["domainYDim"]/2. # 4.
+        self.YY[0] = -pD["domainYDim"]/2.
 
         # start with a harmonic restraint on the Z coordinate
         expression = '100.0 * z^2'
@@ -98,6 +100,10 @@ class CustomForce(mm.CustomExternalForce):
         self.XX = [-self.MAXX[0]] 
         #print("TODO get rid of indexing a[0]") 
         self.aa[0] = -1 * pD["xScale"] * ac # make attractive for U = -xScale * c       
+
+
+        # y 
+        self.bb[0] = -1 *  pD["yScale"]
          
 
         # any changes here must be made in potential() below too 
@@ -115,14 +121,39 @@ class CustomForce(mm.CustomExternalForce):
                 )
 
         # y parabola 
-        expression += '''+ {bb} * (y - {YY})^4'''.format(**fmt)
+        #expression += '''+ {bb} * (y - {YY})^4'''.format(**fmt)
+        expression += '''+ {bb} * exp(-(y - {YY})/25.)'''.format(**fmt)
+
         # xExpression / gradient 
         #expression += '''+ {aa} * (x - {XX})^4'''.format(**fmt)
         # my potential for the x direction
         # xPotential = aa*(xParticle-x0)      <--- if bba=1
         expression += '''+ {aa} * (x - {XX})^{bba}  '''.format(**fmt)
         expression +=" "
-  
+
+
+        # I bet this can be converted using sympy or something, but for now just use this 
+        # plotme 
+        print(expression) 
+        def func(x,y):
+            z=0
+            #v =100.0 * z**2+ 0.0 * (y - 0)**4+ 1.0 * (x - -50.0)**1   # +10*(max(0, -50.0-x) + max(0, x-50.0) + max(0, -25.0-y) + max(0, y-25.0));
+            v=100.0 * z**2  + -1.0 * np.exp(-(y - -25.0)/25.)+ -0.01 * (x - -50.0)**1
+            return v
+        vfunc = np.vectorize(func)
+        display = False 
+        if display:
+          #print(vfunc(1,2))
+          #xx,yy = np.meshgrid(0:10,0:10)
+          xx,yy = np.mgrid[-pD['domainXDim']/2:pD['domainXDim']/2:1,-pD['domainYDim']/2:pD['domainYDim']/2:1]
+          V = vfunc(xx,yy)
+
+          plt.pcolormesh(xx,yy,V,shading='gouraud')
+          plt.axis('equal')
+          plt.colorbar()
+          plt.gcf().savefig("energy.png")
+          quit()
+
 
         # cylindrical container in xy plane 
         if containmentPotential=='cylinder':
@@ -159,7 +190,8 @@ class Params():
     paramDict["yPotential"] = False
     paramDict["containmentPotential"] = False # 'cylindrical','square'
     paramDict["chemoAttr"]      = 1.     # conc. of chemoattractant 
-    paramDict["xScale"]   = 100.   # scale for chemoattractant gradient 
+    paramDict["xScale"]   = 10.   # scale for chemoattractant gradient along X 
+    paramDict["yScale"]   = 10.   # scale for chemoattractant gradient along Y 
     paramDict["frameRate"]=   1.  # [1 min/update]
 
     paramDict["nCells"] = 10  
