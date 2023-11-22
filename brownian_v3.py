@@ -6,7 +6,8 @@
 # I'm troublshooting based on the helloargon openmm example 
 # http://docs.openmm.org/latest/userguide/library/03_tutorials.html#helloargon-program
 
-"""Propagating 2D dynamics on the muller potential using OpenMM.
+"""
+Propagating 2D dynamics on the muller potential using OpenMM.
 Currently, we just put a harmonic restraint on the z coordinate,
 since OpenMM needs to work in 3D. This isn't really a big deal, except
 that it affects the meaning of the temperature and kinetic energy. So
@@ -50,12 +51,11 @@ class CustomForce(mm.CustomExternalForce):
     aa = [5e-3]       
     bba= [1]   # power for x (1 - linear) 
     bb = [5e-3]
-    XX = [0] # need to adjust this to the domain size 
     YY = [0]
     # z - potential is defined below 
 
     # for square potential 
-    MINX=[-50e3]
+    MINX=[-50e3]  # updated below 
     MAXX=[ 50e3]
     MINY=[-10e3]
     MAXY=[ 10e3]
@@ -70,6 +70,7 @@ class CustomForce(mm.CustomExternalForce):
         yPotential = pD["yPotential"]
         xPotential = pD["xPotential"]
         containmentPotential = pD["containmentPotential"]
+        print("TODO domainXDim; etc") 
         self.MINX[0]=-pD["domainDim"]/2.
         self.MAXX[0]= pD["domainDim"]/2.
         self.MINY[0]=-pD["domainDim"]/2. # 4.
@@ -80,8 +81,14 @@ class CustomForce(mm.CustomExternalForce):
 
  
         # chemoattractant gradient ; assume RHS is maximal ATP
-        # c(x=len) = chemoAttr * ac *x ---> ac = c/lenDom 
-        ac    = pD["chemoAttr"]/self.MAXX[0]
+        # s = ( c(x=max)-c(x=min) ) /(max-min) ==> s = c/(2*xmax) 
+        # b = 1/2 c
+        # y = x * s + b ==> y = x c/(2m) + 1/2 (m*c/m) 
+        # ==> y = c/2m * (x + m)
+        ac    = pD["chemoAttr"]/(2*self.MAXX[0])
+        #print(ac)
+        self.XX = [-self.MAXX[0]] 
+        #print("TODO get rid of indexing a[0]") 
         self.aa[0] = -1 * pD["xScale"] * ac # make attractive for U = -xScale * c       
          
 
@@ -108,6 +115,8 @@ class CustomForce(mm.CustomExternalForce):
         expression += '''+ {aa} * (x - {XX})^{bba}  '''.format(**fmt)
         expression +=" "
   
+        raise RuntimeError(expression)
+
         # cylindrical container in xy plane 
         if containmentPotential=='cylinder':
           print('adding cylindrical containment potential') 
@@ -142,6 +151,7 @@ class Params():
     paramDict["xPotential"] = False
     paramDict["yPotential"] = False
     paramDict["containmentPotential"] = False # 'cylindrical','square'
+    paramDict["chemoAttr"]      = 1.     # conc. of chemoattractant 
     paramDict["xScale"]   = 100.   # scale for chemoattractant gradient 
     paramDict["frameRate"]=   1.  # [1 min/update]
 
@@ -159,7 +169,6 @@ class Params():
     paramDict["outName"]="test"
 
     # system params (can probably leave these alone in most cases
-    paramDict["chemoAttr"]      = 1.     # conc. of chemoattractant 
     paramDict["domainDim"]    = 10  # FOR NOW, KEEP PARTICLES WITHIN 99 for PDB [nm/um] dimensions of domain  
     paramDict["crowderDim"]    = None   # [nm/um] dimensions of domain containing crowders (square)  
     paramDict["nInteg"] = 100  # integration step per cycle

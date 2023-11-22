@@ -12,7 +12,7 @@ nUpdates: 10000 # to match with exptl number of frames
 friction: 100 # [1/ps] (time is in no relation to expt, treat as unitless here)
 containmentPotential: square   # how to contain particles 
 xPotential: True    # [True/False]
-xScale: 100.        # scale for chemoattractant gradient (when xpotential is true)  
+xScale: 1.        # scale for chemoattractant gradient (when xpotential is true)  
 yPotential: False # [True/False] 
 outName: atp     
 

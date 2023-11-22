@@ -72,6 +72,7 @@ ssh -L localhost:8890:localhost:8888    pkekeneshuskey@kant.luc.edu
 - Can't get particle packing greater than 9/check that effectiveDim is helpful 
 - ATP gradient is small
 - Can we restrict particles to be in boundary left of the box 
+- fermi dirac potential from Y 
 - RESOLVED There is some kind of problem with the z-constraint. Compare brown_wnonbond.py z coordinates relative to openmuller.py in the tests directory 
 - CANCEL PBCs in Y direction should be added 
 - DONE implement flux calculation 
