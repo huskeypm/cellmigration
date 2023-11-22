@@ -126,7 +126,12 @@ def LoadTraj(caseName):
 def CalcVolFrac(auxParams): 
   d = auxParams['domainDim']
   n = auxParams['nCrowders']
-  r = auxParams['crowderRad']
+
+  if auxParams['effectiveRad'] is None:
+    r = auxParams['crowderRad']
+  else:
+    r = auxParams['effectiveRad']
+    print("USING EFFECTIVE RADIUS") 
 
   volFrac = CalcVolFraction(n,d,r)
 

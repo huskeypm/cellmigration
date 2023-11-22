@@ -14,21 +14,30 @@ that it affects the meaning of the temperature and kinetic energy. So
 take the meaning of those numbers with a grain of salt.
 """
 
-#from simtk.unit import kelvin, picosecond, femtosecond, nanometer, dalton
+import socket
+isKant = False
+if socket.gethostname()=='kant':
+    isKant=True
+
 # if kant installastion
-#import simtk.openmm as mm
-#from simtk.openmm.app import *                    
+if isKant:
+  from simtk.unit import kelvin, picosecond, femtosecond, nanometer, dalton
+  import simtk.openmm as mm
+  from simtk.openmm.app import *                    
+
 # otherwise 
-import openmm as mm
-from openmm.unit import kelvin, picosecond, femtosecond, nanometer, dalton
-from openmm.app import * # PDBFile, DCDReporter
+else: 
+  import openmm as mm
+  from openmm.unit import kelvin, picosecond, femtosecond, nanometer, dalton
+  from openmm.app import * # PDBFile, DCDReporter
+
 import lattice 
 import brown_util as bu
 import numpy as np
 
 ## INIT 
 import platform as pf
-if pf.system()=='Darwin':
+if pf.system()=='Darwin' or isKant:
   print("Running on mac; assuming no CUDA")
   platform = mm.Platform.getPlatformByName('CPU')
   properties = {}
@@ -70,11 +79,10 @@ class CustomForce(mm.CustomExternalForce):
         yPotential = pD["yPotential"]
         xPotential = pD["xPotential"]
         containmentPotential = pD["containmentPotential"]
-        print("TODO domainXDim; etc") 
-        self.MINX[0]=-pD["domainDim"]/2.
-        self.MAXX[0]= pD["domainDim"]/2.
-        self.MINY[0]=-pD["domainDim"]/2. # 4.
-        self.MAXY[0]= pD["domainDim"]/2. # 4.
+        self.MINX[0]=-pD["domainXDim"]/2.
+        self.MAXX[0]= pD["domainXDim"]/2.
+        self.MINY[0]=-pD["domainYDim"]/2. # 4.
+        self.MAXY[0]= pD["domainYDim"]/2. # 4.
 
         # start with a harmonic restraint on the Z coordinate
         expression = '100.0 * z^2'
@@ -115,7 +123,6 @@ class CustomForce(mm.CustomExternalForce):
         expression += '''+ {aa} * (x - {XX})^{bba}  '''.format(**fmt)
         expression +=" "
   
-        raise RuntimeError(expression)
 
         # cylindrical container in xy plane 
         if containmentPotential=='cylinder':
@@ -169,7 +176,8 @@ class Params():
     paramDict["outName"]="test"
 
     # system params (can probably leave these alone in most cases
-    paramDict["domainDim"]    = 10  # FOR NOW, KEEP PARTICLES WITHIN 99 for PDB [nm/um] dimensions of domain  
+    paramDict["domainXDim"]    = 10  # FOR NOW, KEEP PARTICLES WITHIN 99 for PDB [nm/um] dimensions of domain  
+    paramDict["domainYDim"]    = 10  # FOR NOW, KEEP PARTICLES WITHIN 99 for PDB [nm/um] dimensions of domain  
     paramDict["crowderDim"]    = None   # [nm/um] dimensions of domain containing crowders (square)  
     paramDict["nInteg"] = 100  # integration step per cycle
     paramDict["mass"] = 1.0 * dalton
@@ -181,7 +189,8 @@ class Params():
      
   def update(self):
     if self.paramDict["crowderDim"] is None:
-        self.paramDict["crowderDim"]=self.paramDict["domainDim"]
+        # set to Y-dim, which should usually be smallest
+        self.paramDict["crowderDim"]=self.paramDict["domainYDim"]
 
 # allocate instance 
 params = Params()
@@ -227,11 +236,12 @@ def runBD(
   else:
     crowderRad = paramDict['effectiveRad'] 
 
+  outerDims=[paramDict["domainXDim"], paramDict["domainYDim"]]
   crowderPos, cellPos = lattice.GenerateCrowdedLattice(
           nCrowders,nCells,
           crowderRad,paramDict['cellRad'],
           crowdedDim=paramDict["crowderDim"], # [um] dimensions of domain containing crowders (square)  
-          outerDim=paramDict["domainDim"]
+          outerDims=outerDims
           )  # generate crowders
 
   newCrowderPos = np.shape(crowderPos)[0]
@@ -252,6 +262,7 @@ def runBD(
 
 
   print("WARNING: adding random noise, since there's a weird bug with particles placed at origin 0,0,0")
+  print("TODO try removing") 
   startingPositions[:,0]+=1e-3*np.random.rand(nTot)
   startingPositions[:,1]+=1e-3*np.random.rand(nTot)
   ###############################################################################
