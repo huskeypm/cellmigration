@@ -19,7 +19,6 @@
 - See http://docs.openmm.org/latest/userguide/application/01_getting_started.html
 - Create a new environment (seems cleaner) 
 ```
-# conda install -c conda-forge openmm
 conda create -n openmm-env -c conda-forge openmm pyyaml matplotlib 
 conda install -c conda-forge ambertools=23  
 ```
@@ -79,7 +78,7 @@ python3 brownian_v3.py -yamlFile FILE.yaml -run
 -- VMD: load test.pdb. Right click entry in GUI. Select Load Data Into Molecule. Select dcd
 - Lastly, if you know what you're doing, you can use the processYaml file
 ```
- python processYaml.py -yaml tests/expt.yaml
+python processYaml.py -yaml tests/expt.yaml
 ```
 This will print all of the parameters in csv format as well as an output yaml file
 
@@ -87,9 +86,14 @@ This will print all of the parameters in csv format as well as an output yaml fi
 <a name="advanced"></a>
 ## Advanced
 ### jupyter SSH 
-  jupyter notebook --no-browser # --port 8888
+- on remote host 
+```
+jupyter notebook --no-browser # --port 8888
+```
+- on local host 
+```
 ssh -L localhost:8890:localhost:8888    pkekeneshuskey@kant.luc.edu
-
+```
 
 ### Fitting procedure (need to update) 
 I adjusted the nUpdates parameter to equal the number of frames taken by the microscope
