@@ -1,13 +1,14 @@
 import numpy as np
-
-
-
 def GenerateLattice(
         nLattice,
         nRow,
         dims=[50,50],
         effDim=0.    # if positive value, will deduct this from dim so as to fit in cells (usually pass in cell diam)  
+        #xThresh = None
         ):
+  '''
+  Generate lattice to accommodate nLattice points within the specified dims 
+  '''
 
   dimX,dimY = dims
   nCol = nLattice / (nRow)
@@ -21,6 +22,9 @@ def GenerateLattice(
       dimX -=effDim 
       dimY -=effDim 
 
+
+  # ........######
+  # .....######...
   try:
     latticeSpaceX = dimX/(nCol-1)
     latticeSpaceY = dimY/(nRow-1)
@@ -93,16 +97,15 @@ def GenerateCrowderLattice(
 
 
 def GenerateRandomLattice( 
-  # PKH turn into nCrowder x 3 array 
-  #crowderPos = np.array([0,0,0]), # where crowder is located 
   crowderPosns,   # nx3 array of crowder coordinates 
   crowderRad = 10.,
   nCells = 50,
   cellRad= 1, 
-  dims =  [30,30] # [um]    
+  dims =  [30,30], # [um]    
+  xThresh = None
   ) : 
   """ 
-  Generates a distribution of cells that avoids placed crowders                 
+  Generates a randomized distribution of cells that avoids placed crowders                 
   """
   # later should adjust for asymmetric dimensions, but ignore for 
   # now 
@@ -110,7 +113,19 @@ def GenerateRandomLattice(
   nRow     =  int(np.sqrt(nLattice)) 
   if nCells > nLattice:
       raise RuntimeError("too many cells for lattice size") 
+
   latticePts = GenerateLattice(nLattice,nRow,dims,effDim=(cellRad*2))
+
+  # only keep entries to the left of xThresh
+  print(xThresh)
+  if xThresh is not None:
+    xs = latticePts[:,0]
+    idx = np.where( xs <= xThresh)
+    #print(np.shape(latticePts))
+    latticePts = latticePts[idx[0],:]
+    #print(np.shape(latticePts))
+    
+
   latticeIdxs= np.arange( np.shape(latticePts)[0])
 
   # typecast
@@ -175,10 +190,14 @@ def GenerateCrowdedLattice(
     crowderRad=10.,
     cellRad=1.,
     crowdedDim=30,
-    outerDims = [50,50]):
+    outerDims = [50,50],
+    xThresh = None        
+):
+  #raise RuntimeError(xThresh)
 
   """
   Combines placement of crowders and cells onto regular lattice
+  - xThresh can be used to constrain particles to the left of xThresh (so you can have assymetric starting distributions of cells) 
   """
   crowderPos = GenerateCrowderLattice(
     nCrowders, 
@@ -190,7 +209,8 @@ def GenerateCrowdedLattice(
     crowderRad = crowderRad,
     nCells = nCells,
     cellRad = cellRad,
-    dims = outerDims # [um]
+    dims = outerDims, # [um]
+    xThresh = xThresh
     ) 
 
   

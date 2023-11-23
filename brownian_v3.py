@@ -5,6 +5,7 @@
 # Not convinced that the LJ terms are working appropriately, therefore 
 # I'm troublshooting based on the helloargon openmm example 
 # http://docs.openmm.org/latest/userguide/library/03_tutorials.html#helloargon-program
+#
 import matplotlib.pylab as plt
 
 """
@@ -134,7 +135,6 @@ class CustomForce(mm.CustomExternalForce):
 
         # I bet this can be converted using sympy or something, but for now just use this 
         # plotme 
-        print(expression) 
         def func(x,y):
             z=0
             #v =100.0 * z**2+ 0.0 * (y - 0)**4+ 1.0 * (x - -50.0)**1   # +10*(max(0, -50.0-x) + max(0, x-50.0) + max(0, -25.0-y) + max(0, y-25.0));
@@ -210,6 +210,7 @@ class Params():
     # system params (can probably leave these alone in most cases
     paramDict["domainXDim"]    = 10  # FOR NOW, KEEP PARTICLES WITHIN 99 for PDB [nm/um] dimensions of domain  
     paramDict["domainYDim"]    = 10  # FOR NOW, KEEP PARTICLES WITHIN 99 for PDB [nm/um] dimensions of domain  
+    paramDict["xThresh"]       = None  # 0 keep only the particles on the left side 
     paramDict["crowderDim"]    = None   # [nm/um] dimensions of domain containing crowders (square)  
     paramDict["nInteg"] = 100  # integration step per cycle
     paramDict["mass"] = 1.0 * dalton
@@ -273,7 +274,8 @@ def runBD(
           nCrowders,nCells,
           crowderRad,paramDict['cellRad'],
           crowdedDim=paramDict["crowderDim"], # [um] dimensions of domain containing crowders (square)  
-          outerDims=outerDims
+          outerDims=outerDims,
+          xThresh=paramDict["xThresh"]
           )  # generate crowders
 
   newCrowderPos = np.shape(crowderPos)[0]
