@@ -1,8 +1,9 @@
 # cellmigration
-1. [ Description. ](#desc)
-2. [ Installation. ](#install)
-3. [ Usage tips. ](#usage)
-4. [ Analysis. ](#analysis)
+1. [ Description ](#desc)
+2. [ Installation ](#install)
+3. [ Usage tips ](#usage)
+4. [ Analysis ](#analysis)
+5. [ Advanced ](#advanced)
 
 
 <a name="desc"></a>
@@ -83,18 +84,24 @@ python3 brownian_v3.py -yamlFile FILE.yaml -run
 This will print all of the parameters in csv format as well as an output yaml file
 
 
-## jupyter SSH 
+<a name="advanced"></a>
+## Advanced
+### jupyter SSH 
   jupyter notebook --no-browser # --port 8888
 ssh -L localhost:8890:localhost:8888    pkekeneshuskey@kant.luc.edu
 
 
-## Fitting procedure (need to update) 
+### Fitting procedure (need to update) 
 I adjusted the nUpdates parameter to equal the number of frames taken by the microscope
 The framerate parameter is set to #/min 1 fr/90s  
 The distance units in the code are assumed to be [um] though openmm assumes [nm]
 The friction parameter was adjusted s.t. the MSD at the last frame was close to the expt value
 
-## TODO
+
+### generating jobs for faust
+Use master.ipynb on faust 
+
+### TODO
 - Can't get particle packing greater than 9/check that effectiveDim is helpful 
 - ATP gradient is small
 - Can we restrict particles to be in boundary left of the box 
