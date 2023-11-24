@@ -1,3 +1,8 @@
+WARNING: for the time being, use SEEKER conda, not openmm-env w pytraj
+SEEKRNew
+
+
+
 Workflow
 - Determine your code/data locations on the remote host (faust)
 - in faust.bash, set run directory, runfile, and exec

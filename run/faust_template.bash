@@ -11,7 +11,7 @@ module load shared
 module load cuda11.3/toolkit/11.3.0
 
 # this was a conda instance that includes openmm
-conda activate SEEKR
+conda activate openmm-env
 export PYTHON=`which python` # /cm/shared/apps/anaconda3/envs/SEEKR/bin/python
 
 

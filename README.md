@@ -20,6 +20,7 @@
 - Create a new environment (seems cleaner) 
 ```
 conda create -n openmm-env -c conda-forge openmm pyyaml matplotlib 
+conda activate openmm-env 
 conda install -c conda-forge ambertools=23  
 ```
 

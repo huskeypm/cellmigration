@@ -34,7 +34,7 @@ else:
   from openmm.app import * # PDBFile, DCDReporter
 
 import lattice 
-import brown_util as bu
+#import brown_util as bu
 import numpy as np
 
 ## INIT 
@@ -313,7 +313,8 @@ def runBD(
   # define arbitrary pdb
   nm_to_Ang=10
   sp_Ang = startingPositions*nm_to_Ang # default is nm in program, but pdb/dcd use Ang     
-  bu.genPDBWrapper(pdbFileName,nCells,nCrowders,sp_Ang)
+  import pdb
+  pdb.genPDBWrapper(pdbFileName,nCells,nCrowders,sp_Ang)
   #calc.genPDBWrapper(pdbFileName,nTot,startingPositions)
   # add to openmm
   pdb = PDBFile(pdbFileName) 
