@@ -37,14 +37,11 @@ def ProcessTraj(caseName,display=False):
     traj = bu.LoadTraj(caseName)
 
     #, get RDF
-    mask1='@RC'
-    mask2=':28@AC'# last atom (crowder) 
-    bu.CalcRDF(traj,mask1=mask1,mask2=mask2)  
-
-def ProcessTraj(caseName,display=False): 
-    # LoadTraj
-    traj = LoadTraj(caseName)
-
+    bu.CalcRDFs(traj,"RC","AC")
+    #mask1='@RC'
+    #mask2=':21@AC'# last atom (crowder) 
+    #bu.CalcRDF(traj,mask1=mask1,mask2=mask2)  
+#
     ## get J,D    
     Di=bu.CalcD(traj,mask='@RC',csvName=caseName)                        
     JA=bu.CalcFlux(traj,mask='@RC',display=display)

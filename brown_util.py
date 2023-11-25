@@ -13,11 +13,34 @@ AA_to_NM = 0.1
 ## 
 ## FUNC
 ##
+def CalcRDFs(traj,solvAtomName,soluteAtomName):
+    """
+    Iteratures over all solute atoms to compute rdf 
+    """
+    solutes = []
+    for res in traj.top.residues:
+      if res.name == soluteAtomName:
+          solutes.append( res.index + 1 )  # zero indexed
+
+    if len(solutes)<1:
+        raise RuntimeError(soluteAtomName + " not found ") 
+
+    # just taker first for now
+    print(solutes) 
+    mask1='@%s'%solvAtomName
+    mask2=':%d@%s'%(solutes[0],soluteAtomName)
+
+    CalcRDF(traj,mask1=mask1,mask2=mask2)
+    quit()
+
+    return 
+
 def CalcRDF(traj,
             mask1, # solvent
             mask2, # solute
             space=0.1,
-            bins=20):
+            bins=20,
+            display=False):
     #radial = pt.rdf(traj, solvent_mask=':WAT@O', solute_mask=':WAT@O', bin_spacing=0.2, maximum=12.)
     """ 
     Calculates radial distribution function
@@ -33,21 +56,25 @@ def CalcRDF(traj,
     #mask2=':28@AC'
 
     # rdf 
-    radial = pt.rdf(traj, solvent_mask=mask1, solute_mask=mask2, 
+    bins,rdf = pt.rdf(traj, solvent_mask=mask1, solute_mask=mask2, 
             bin_spacing=1,maximum=500 # space, maximum=bins
             ) 
 
     #print(np.shape(radial))
     #print(radial)
+    maxBin = bins[np.argmax(rdf)]
+    print("rdfmax", maxBin) 
 
    
-    s = np.sum(radial[1])
-    plt.plot(radial[0]*AA_to_NM,radial[1]/s)
-    plt.xlabel("r [nm]") 
-    plt.ylabel("P") 
-    plt.title("RDF " + mask1 + " " + mask2)
-    plt.gcf().savefig("rdf.png",dpi=300) 
-    return radial 
+    if display:
+      s = np.sum(rdf)
+      plt.plot(bins*AA_to_NM,rdf/s)
+      plt.xlabel("r [nm]") 
+      plt.ylabel("P") 
+      plt.title("RDF " + mask1 + " " + mask2)
+      plt.gcf().savefig("rdf.png",dpi=300) 
+
+    return maxBin 
 
 def CalcProbDist(traj, mask='@RC',display=False):
 # for each particle, get dx in all directions, provide dt as input
