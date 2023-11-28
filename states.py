@@ -40,6 +40,12 @@ class CellSystem():
     """
     self.stateMatrix[:,  idx   ]=values
 
+  def Print(self,idx=IDXSTATE):
+    """
+    gets current set of values    
+    """
+    print(self.stateMatrix[:,  idx   ])
+
   def UpdateK01(self,values):
     self.Update(values,idx=IDXK01)
 
@@ -56,7 +62,7 @@ class CellSystem():
     self.Update(values,idx=IDXCB)
 
   def PrintStates(self):
-    print(self.stateMatrix[:,IDXSTATE])
+    self.Print(idx=IDXSTATE)
 
   def SumStates(self):
     states = {'0':0,'1':0,'2':0}
@@ -75,6 +81,7 @@ class CellSystem():
         w01 = np.exp(-(t-stateMatrix[:,IDXT0   ])*stateMatrix[:,IDXK01  ])
         w12 = np.exp(-(t-stateMatrix[:,IDXT0   ])*stateMatrix[:,IDXK12  ])  
         w20 = np.exp(-(t-stateMatrix[:,IDXT0   ])*stateMatrix[:,IDXK20  ])  
+        #print(stateMatrix[0,IDXK01  ],stateMatrix[0,IDXK12  ],stateMatrix[0,IDXK20  ])
         # Prob will occur  (1-not)
         Poccur01 = np.array(np.random.rand(nCells) < 1-w01,int)
         Poccur12 = np.array(np.random.rand(nCells) < 1-w12,int)

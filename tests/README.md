@@ -10,3 +10,4 @@ expt_watp.yaml - parameters needed to reproduce expt w ATP
 crowder_gradient.yaml - finite sized crowder with chemokine gradients in two directions
 effrad.yaml - assumes crowders have an effective radius based on running a probability calculation 
 
+states.yaml - instructions for simulating microglia states 

@@ -211,6 +211,7 @@ class Params():
     paramDict["outName"]="test"
 
     # for states
+    paramDict["states"] = False  # turn on states calculations(see states.py for more info)   
     paramDict["K01"] = 1000.  # rate for 0->1 transition in states.py (see that file for more info)   
     paramDict["K12"] = 1000.  # rate for 0->1 transition in states.py (see that file for more info)   
     paramDict["K20"] = 1000.  # rate for 0->1 transition in states.py (see that file for more info)   
@@ -457,9 +458,9 @@ def runBD(
   #
   print("Running dynamics") 
   csi = states.CellSystem(nCells=nCells)
-  csi.UpdateK01 = paramDict["K01"]
-  csi.UpdateK12 = paramDict["K12"]
-  csi.UpdateK20 = paramDict["K20"]
+  csi.UpdateK01(paramDict["K01"])
+  csi.UpdateK12(paramDict["K12"])
+  csi.UpdateK20(paramDict["K20"])
   updateStates = 10
   stateUpdates = int(nUpdates/updateStates)
   closeAs = np.zeros(stateUpdates)
@@ -486,10 +487,8 @@ def runBD(
           break    
 
 
-      # PKH not entirely sure what this number should be yet.....
-      # could probably decrease the frequency with which the states are updated 
-      if (i % updateStates) == 0:
-        t=i*1000
+      if (paramDict['states'] and (i % updateStates) == 0):
+        t=i  # time/not sure what units/values to use yet ??????
         j = int(i/updateStates)
         stateSum,closeA, closeB = UpdateStates(csi,x,t,idxsCells,idxsA,idxsB,paramDict)
         closeAs[j] = closeA
@@ -523,25 +522,38 @@ def runBD(
   stop = timeit.default_timer()
   print('Time(s): ', int(stop - start))
 
-  plt.figure()
-  plt.plot(closeAs)
-  plt.plot(closeBs)
-  plt.gcf().savefig("close.png") 
+  # plot states 
+  if paramDict['states']:
+    plt.figure()
+    plt.title("state simulation") 
+    fig, axl = plt.subplots()
+    ts = np.arange(np.shape(closeAs)[0])
+    axl.scatter(ts,closeAs,label='#cells contacting A')
+    axl.scatter(ts,closeBs,label='B')
+    axl.legend(loc=1)
+    axr = axl.twinx()
+    daKeys = stateSums[0].keys()
+    for key in daKeys:
+        l = [i[key] for i in stateSums]
+        axr.plot(l,label=key)
+        axr.legend(loc=2)
+    plt.gcf().savefig("close.png") 
 
   #if display:
   #    plt.show() 
 
   # package data 
-
-  ar = [ts,xs,ys]
-  import pickle as pkl
-  if trajOutName is not None:
-    if "pkl" not in trajOutName:
-      trajOutName+=".pkl"
-    file = open(trajOutName, 'wb') 
-    pkl.dump(ar,file)        
-    file.close()
-  print("WARNING: pdb, dcd, and pkl are reported in Angstrom, while states are in nanometer!!")
+  printPKL=False 
+  if printPKL:
+    ar = [ts,xs,ys]
+    import pickle as pkl
+    if trajOutName is not None:
+      if "pkl" not in trajOutName:
+        trajOutName+=".pkl"
+      file = open(trajOutName, 'wb') 
+      pkl.dump(ar,file)        
+      file.close()
+    print("WARNING: pdb, dcd, and pkl are reported in Angstrom, while states are in nanometer!!")
   
   return ts,xs, ys 
 

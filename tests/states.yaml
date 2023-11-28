@@ -1,0 +1,26 @@
+nCells: 10  # adjust me to mirror exptl data 
+cellRad:  5.0   # um 
+cellAttr: 1.
+domainXDim: 100
+domainYDim:  50
+nCrowders: 3   
+crowderRad:  8.0 # um
+crowderDim:  50 # um
+crowderAttr: 1.
+#effectiveRad: 10 # um 
+states: True 
+contactDistCrowderA: 10.  # distance between cell and crowder type A to be considered a 'contact'
+contactDistCrowderB: 30.
+K01: 1e-3
+K12: 1e-3
+K20: 1e-2
+
+nUpdates: 1000 # to match with exptl number of frames 
+friction:  50 # [1/ps] (time is in no relation to expt, treat as unitless here)
+containmentPotential: square   # how to contain particles 
+xPotential: False   # [True/False]
+xScale: 100.0        # scale for chemoattractant gradient (when xpotential is true)  
+yPotential: False # [True/False] 
+yScale: 100.
+outName: states
+
