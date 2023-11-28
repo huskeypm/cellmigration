@@ -5,6 +5,8 @@
 # v4 includes support for states via gillespie  
 #
 import matplotlib.pylab as plt
+from scipy.spatial.distance import pdist, squareform
+
 
 """
 Propagating 2D dynamics on the muller potential using OpenMM.
@@ -33,6 +35,7 @@ else:
 
 import lattice 
 import brown_util as bu
+import states
 import numpy as np
 
 ## INIT 
@@ -201,8 +204,8 @@ class Params():
     paramDict["crowderRad"]= 15. # [um]
     paramDict["crowderAttr"]=1.   # [] attraction between crowder and cell (vdw representation) 
     paramDict["crowderChg"]= 0.   # [] 'electrostatic charge' (just for debugging)                        
-    paramDict["contactDistCrowderA"] = 10.    # distance between cell and crowder type A to be considered a 'contact'
-    paramDict["contactDistCrowderB"] = 10.   # distance between cell and crowder type A to be considered a 'contact'
+    paramDict["contactDistCrowderA"] = 1000.  # distance between cell and crowder type A to be considered a 'contact'
+    paramDict["contactDistCrowderB"] = 1000. # distance between cell and crowder type A to be considered a 'contact'
     paramDict["effectiveRad"] = None    # [nm] this is used when the attraction between crowder/cell yields effective radii that are smaller than expected.  
     paramDict["tag"]="run"
     paramDict["outName"]="test"
@@ -229,18 +232,6 @@ class Params():
 params = Params()
 
 
-print("PUT FUNC INTO BU") 
-def GetContacts(dists,idxs,thresh=2):
-    s=dists[:,idxs]
-    #print("sub",s)
-    cellMin = np.min(s,axis=1)
-    #idxClose = np.where(cellMin <= thresh) # will have one min distance for each cell
-    #print('cellMin',cellMin)
-    #print('iscloe',idxClose)
-    #idxClose=1
-    close = np.array(cellMin <= thresh,int)
-    #print(close)
-    return close
 
 
 import yaml
@@ -419,7 +410,8 @@ def runBD(
   # START ITERATOR 
   #
   print("Running dynamics") 
-  csi = cs.CellSystem(nCells=nCells)
+  csi = states.CellSystem(nCells=nCells)
+  IDXK01=2; IDXK12=3; IDXK20=4
   csi.stateMatrix[:,IDXK01] = 1000.
   csi.stateMatrix[:,IDXK12] = 1000.
   csi.stateMatrix[:,IDXK20] = 1000.
@@ -455,18 +447,24 @@ def runBD(
       # for debug
       #dists = np.array(dists,int)
       #print(dists)
-
-      closeA=GetContacts(dists,idxsA,thresh=paramDict["contactDistCrowderA"])
-      closeB=GetContacts(dists,idxsB,thresh=paramDict["contactDistCrowderB"])
+      closeA=bu.GetContacts(dists,idxsA,thresh=paramDict["contactDistCrowderA"])
+      closeB=bu.GetContacts(dists,idxsB,thresh=paramDict["contactDistCrowderB"])
       closeAs[i] = np.sum(closeA[idxsCells])
       closeBs[i] = np.sum(closeB[idxsCells])
 
-      IDXK01=2; IDXK12=3; IDXK20=4
-      csi.UpdateContactsA( np.ones(nCells) )
-      csi.UpdateContactsB( np.ones(nCells) )
+      #csi.UpdateContactsA( np.ones(nCells) )
+      #csi.UpdateContactsB( np.ones(nCells) )
+      csi.UpdateContactsA( closeA[idxsCells] )              
+      csi.UpdateContactsB( closeB[idxsCells] )              
       t=1000
       csi.PrintStates()
-      csi.EvalTransitions(t,nCells,cs.stateMatrix)
+      csi.EvalTransitions(t)#,nCells,cs.stateMatrix)
+      csi.PrintStates()
+      t=20000
+      csi.EvalTransitions(t)#,nCells,cs.stateMatrix)
+      csi.PrintStates()
+      t=40000
+      csi.EvalTransitions(t)#,nCells,cs.stateMatrix)
       csi.PrintStates()
 
       quit()

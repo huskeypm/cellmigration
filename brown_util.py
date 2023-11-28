@@ -13,6 +13,17 @@ AA_to_NM = 0.1
 ## 
 ## FUNC
 ##
+def GetContacts(dists,idxs,thresh=2):
+    s=dists[:,idxs]
+    #print("sub",s)
+    cellMin = np.min(s,axis=1)
+    #idxClose = np.where(cellMin <= thresh) # will have one min distance for each cell
+    #print('cellMin',cellMin)
+    #print('iscloe',idxClose)
+    #idxClose=1
+    close = np.array(cellMin <= thresh,int)
+    #print(close)
+    return close
 def CalcRDFs(traj,solvAtomName,soluteAtomName):
     """
     Iteratures over all solute atoms to compute rdf 
