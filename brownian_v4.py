@@ -268,10 +268,8 @@ def UpdateStates(csi,x,t,idxsCells,idxsA,idxsB,paramDict):
       # determine next state based
       #csi.PrintStates()
       csi.EvalTransitions(t)#,nCells,cs.stateMatrix)
-      csi.PrintStates()
+      #csi.PrintStates()
       stateSums = csi.SumStates()
-
-
 
       closeAs = np.sum(closeA[idxsCells])
       closeBs = np.sum(closeB[idxsCells])
