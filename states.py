@@ -47,6 +47,9 @@ class CellSystem():
   def UpdateContactsB(self,values):
     self.Update(values,idx=IDXCB)
 
+  def PrintStates(self):
+    print((self.stateMatrix[:,IDXSTATE])
+
 def EvalTransitions(t,nCells,stateMatrix):
         w01 = np.exp(-(t-stateMatrix[:,IDXT0   ])*stateMatrix[:,IDXK01  ])
         w12 = np.exp(-(t-stateMatrix[:,IDXT0   ])*stateMatrix[:,IDXK12  ])  
