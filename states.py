@@ -40,8 +40,16 @@ class CellSystem():
     """
     self.stateMatrix[:,  idx   ]=values
 
+  def UpdateK01(self,values):
+    self.Update(values,idx=IDXK01)
+
+  def UpdateK12(self,values):
+    self.Update(values,idx=IDXK12)
+
+  def UpdateK20(self,values):
+    self.Update(values,idx=IDXK20)
+
   def UpdateContactsA(self,values):
-    #print(values)
     self.Update(values,idx=IDXCA)
 
   def UpdateContactsB(self,values):
@@ -50,7 +58,18 @@ class CellSystem():
   def PrintStates(self):
     print(self.stateMatrix[:,IDXSTATE])
 
+  def SumStates(self):
+    states = {'0':0,'1':0,'2':0}
+    for key in states.keys():
+      i = int(key)
+      #states['%d'%i] np.count_nonzero(states[i,:] == i)
+      states[key] = np.count_nonzero(self.stateMatrix[:,IDXSTATE] == i)
+    return states
+
   def EvalTransitions(self,t):
+        """
+        uses gillespie algorithm to advance states
+        """ 
         nCells = self.nCells
         stateMatrix = self.stateMatrix
         w01 = np.exp(-(t-stateMatrix[:,IDXT0   ])*stateMatrix[:,IDXK01  ])
@@ -90,7 +109,12 @@ class CellSystem():
         stateMatrix[idx2,IDXT0   ]=t
 
 
-def Iterator(stateMatrix,nCells):
+def Iterator(cs): # ,stateMatrix,nCells):
+  """
+  cs - cell system 
+  """
+  stateMatrix = cs.stateMatrix
+  nCells = cs.nCells
   # reset 
   #stateMatrix[:,IDXT0   ]=0
   #stateMatrix[:,IDXSTATE]=0
@@ -109,16 +133,17 @@ def Iterator(stateMatrix,nCells):
       # Prob not occur
       #print(t-stateMatrix[:,IDXT0   ])
   
-      EvalTransitions(t,nCells,stateMatrix)
+      cs.EvalTransitions(t) # ,nCells,stateMatrix)
   
       # update 
       states[i,:]=stateMatrix[:,IDXSTATE]
       #print(states[i,:])
       
       # inefficient
-      isZero[i] = np.count_nonzero(states[i,:] == 0)
-      isOne[i]  = np.count_nonzero(states[i,:] == 1)
-      isTwo[i]  = np.count_nonzero(states[i,:] == 2)
+      stateSums = cs.SumStates()
+      isZero[i] = stateSums['0'] #(states[i,:] == 0)
+      isOne[i]  = stateSums['1'] #p.count_nonzero(states[i,:] == 1)
+      isTwo[i]  = stateSums['2'] #p.count_nonzero(states[i,:] == 2)
       
   #print(isZero)   
   #print(isOne)   
@@ -153,7 +178,7 @@ def doit(fileIn):
   t =0 
   cs.EvalTransitions(t) #,nCells,cs.stateMatrix) 
 
-  Iterator(cs.stateMatrix,cs.nCells)
+  Iterator(cs)
 
 
 #

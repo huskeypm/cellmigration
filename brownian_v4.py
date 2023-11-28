@@ -210,6 +210,11 @@ class Params():
     paramDict["tag"]="run"
     paramDict["outName"]="test"
 
+    # for states
+    paramDict["K01"] = 1000.  # rate for 0->1 transition in states.py (see that file for more info)   
+    paramDict["K12"] = 1000.  # rate for 0->1 transition in states.py (see that file for more info)   
+    paramDict["K20"] = 1000.  # rate for 0->1 transition in states.py (see that file for more info)   
+
     # system params (can probably leave these alone in most cases
     paramDict["domainXDim"]    = 10  # FOR NOW, KEEP PARTICLES WITHIN 99 for PDB [nm/um] dimensions of domain  
     paramDict["domainYDim"]    = 10  # FOR NOW, KEEP PARTICLES WITHIN 99 for PDB [nm/um] dimensions of domain  
@@ -230,6 +235,47 @@ class Params():
 
 # allocate instance 
 params = Params()
+
+def UpdateStates(csi,x,t,idxsCells,idxsA,idxsB,paramDict):      
+      """
+      find close contacts between cells and crowders 
+      this seems inefficient; seems like openmm should have something 
+      should package this into brown_util 
+
+      csi - CellSystem object
+      x - current coordinates
+      t - current time 
+      idxsCells - indices of cells
+      """
+      dists=pdist(x)
+      dists = squareform(dists)
+      daMax = np.max(dists)
+      #for i in range(10): # easy way to prevent self interction
+      #  dists[i,i]=daMax
+      # for debug
+      #dists = np.array(dists,int)
+      #print(dists)
+      closeA=bu.GetContacts(dists,idxsA,thresh=paramDict["contactDistCrowderA"])
+      closeB=bu.GetContacts(dists,idxsB,thresh=paramDict["contactDistCrowderB"])
+
+      # update contacts list in state object
+      #csi.UpdateContactsA( np.ones(nCells) )
+      #csi.UpdateContactsB( np.ones(nCells) )
+      csi.UpdateContactsA( closeA[idxsCells] )              
+      csi.UpdateContactsB( closeB[idxsCells] )              
+
+      # determine next state based
+      #csi.PrintStates()
+      csi.EvalTransitions(t)#,nCells,cs.stateMatrix)
+      csi.PrintStates()
+      stateSums = csi.SumStates()
+
+
+
+      closeAs = np.sum(closeA[idxsCells])
+      closeBs = np.sum(closeB[idxsCells])
+
+      return stateSums,closeAs,closeBs
 
 
 
@@ -411,12 +457,14 @@ def runBD(
   #
   print("Running dynamics") 
   csi = states.CellSystem(nCells=nCells)
-  IDXK01=2; IDXK12=3; IDXK20=4
-  csi.stateMatrix[:,IDXK01] = 1000.
-  csi.stateMatrix[:,IDXK12] = 1000.
-  csi.stateMatrix[:,IDXK20] = 1000.
-  closeAs = np.zeros(nUpdates)
-  closeBs = np.zeros(nUpdates)
+  csi.UpdateK01 = paramDict["K01"]
+  csi.UpdateK12 = paramDict["K12"]
+  csi.UpdateK20 = paramDict["K20"]
+  updateStates = 10
+  stateUpdates = int(nUpdates/updateStates)
+  closeAs = np.zeros(stateUpdates)
+  closeBs = np.zeros(stateUpdates)
+  stateSums= []
 
   for i in range(nUpdates): 
       if (i % iters)==0:
@@ -437,43 +485,16 @@ def runBD(
           print("Something happened at step %i (large displacement); stopping"%i)
           break    
 
-      # find close contacts between cells and crowders 
-      # this seems inefficient; seems like openmm should have something 
-      dists=pdist(x)
-      dists = squareform(dists)
-      daMax = np.max(dists)
-      #for i in range(10): # easy way to prevent self interction
-      #  dists[i,i]=daMax
-      # for debug
-      #dists = np.array(dists,int)
-      #print(dists)
-      closeA=bu.GetContacts(dists,idxsA,thresh=paramDict["contactDistCrowderA"])
-      closeB=bu.GetContacts(dists,idxsB,thresh=paramDict["contactDistCrowderB"])
-      closeAs[i] = np.sum(closeA[idxsCells])
-      closeBs[i] = np.sum(closeB[idxsCells])
 
-      #csi.UpdateContactsA( np.ones(nCells) )
-      #csi.UpdateContactsB( np.ones(nCells) )
-      csi.UpdateContactsA( closeA[idxsCells] )              
-      csi.UpdateContactsB( closeB[idxsCells] )              
-      t=1000
-      csi.PrintStates()
-      csi.EvalTransitions(t)#,nCells,cs.stateMatrix)
-      csi.PrintStates()
-      t=20000
-      csi.EvalTransitions(t)#,nCells,cs.stateMatrix)
-      csi.PrintStates()
-      t=40000
-      csi.EvalTransitions(t)#,nCells,cs.stateMatrix)
-      csi.PrintStates()
-
-      quit()
-
-      #print(closeA[idxsCells], closeB[idxsCells])
-      #idxCloseB=GetContacts(dists,idxsB,thresh=1)
-
-
-
+      # PKH not entirely sure what this number should be yet.....
+      # could probably decrease the frequency with which the states are updated 
+      if (i % updateStates) == 0:
+        t=i*1000
+        j = int(i/updateStates)
+        stateSum,closeA, closeB = UpdateStates(csi,x,t,idxsCells,idxsA,idxsB,paramDict)
+        closeAs[j] = closeA
+        closeBs[j] = closeB
+        stateSums.append(stateSum) 
 
 
       # get particle's positions 
