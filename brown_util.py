@@ -26,12 +26,11 @@ def CalcRDFs(traj,solvAtomName,soluteAtomName):
         raise RuntimeError(soluteAtomName + " not found ") 
 
     # just taker first for now
-    print(solutes) 
+    #print(solutes) 
     mask1='@%s'%solvAtomName
     mask2=':%d@%s'%(solutes[0],soluteAtomName)
 
     CalcRDF(traj,mask1=mask1,mask2=mask2)
-    quit()
 
     return 
 
@@ -63,7 +62,6 @@ def CalcRDF(traj,
     #print(np.shape(radial))
     #print(radial)
     maxBin = bins[np.argmax(rdf)]
-    print("rdfmax", maxBin) 
 
    
     if display:
@@ -216,10 +214,13 @@ def CalcD(traj,mask='@RC',csvName=None, display=False):
 
 ## get flux
 def CalcFlux(traj, mask='@RC',display=False):
-# for each particle, get dx in all directions, provide dt as input
-# select particles in some neighborhood of y=0?
-# grab dx along flux direction
-# sum(dx) / delta y
+  """
+  Gets particle flux across xThresh (0 for now) 
+  for each particle, get dx in all directions, provide dt as input
+  select particles in some neighborhood of y=0?
+  grab dx along flux direction
+  sum(dx) / delta y
+  """
   numFrames = (np.shape(traj.xyz))[0]
 
   ## get cells 
@@ -229,14 +230,18 @@ def CalcFlux(traj, mask='@RC',display=False):
   #print(traj.xyz[2,:,0])
   xThresh = -0.
 
+  # i can spread this out over an interval
+  xdiffs = traj.xyz[-1,indices,0] 
+  xdiffs -= traj.xyz[0,indices,0] 
   if display: 
     plt.figure()
-    diffs = traj.xyz[-1,indices,0] 
-    diffs -= traj.xyz[0,indices,0] 
     #print(traj.xyz[0,indices,0])
     #print(traj.xyz[-1,indices,0])
-    plt.hist(diffs)
+    plt.xlabel('P(xdisplacements)')
+    plt.title("XDisplacements(tf-t0)") 
+    plt.hist(xdiffs)
     plt.gcf().savefig("diffs.png") 
+  print("Mean displacement",np.mean(xdiffs))
   
 
 
@@ -261,11 +266,15 @@ def CalcFlux(traj, mask='@RC',display=False):
   #plt.plot(x,y)
   #plt.gcf().savefig("testxy.png") 
   if display:
+    plt.figure()
     print(l[0],l[-1],np.sum(fluxArea),np.average(fluxArea)*numFrames) # 320 frames 
-    plt.plot(l,label="#particles in x<thresh")     
-    plt.plot(fluxArea,label="flux*area")
-    plt.legend(loc=0)
-    plt.gcf().savefig("test.png") 
+    axl = plt.subplot(111)
+    axl.plot(fluxArea,label="flux*area")
+    axr = axl.twinx()
+    axr.plot(l,'r',label="#particles in x<thresh")     
+    axr.set_ylim(0,np.max(l)+1)
+    axr.legend(loc=0)
+    plt.gcf().savefig("flux.png",dpi=600) 
 
   return JA         
 
