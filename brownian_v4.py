@@ -419,9 +419,13 @@ def runBD(
   # START ITERATOR 
   #
   print("Running dynamics") 
-  from scipy.spatial.distance import pdist,squareform
+  csi = cs.CellSystem(nCells=nCells)
+  csi.stateMatrix[:,IDXK01] = 1000.
+  csi.stateMatrix[:,IDXK12] = 1000.
+  csi.stateMatrix[:,IDXK20] = 1000.
   closeAs = np.zeros(nUpdates)
   closeBs = np.zeros(nUpdates)
+
   for i in range(nUpdates): 
       if (i % iters)==0:
         print("(%d/10)..."%(i/iters+1))
@@ -451,10 +455,22 @@ def runBD(
       # for debug
       #dists = np.array(dists,int)
       #print(dists)
+
       closeA=GetContacts(dists,idxsA,thresh=paramDict["contactDistCrowderA"])
       closeB=GetContacts(dists,idxsB,thresh=paramDict["contactDistCrowderB"])
       closeAs[i] = np.sum(closeA[idxsCells])
       closeBs[i] = np.sum(closeB[idxsCells])
+
+      IDXK01=2; IDXK12=3; IDXK20=4
+      csi.UpdateContactsA( np.ones(nCells) )
+      csi.UpdateContactsB( np.ones(nCells) )
+      t=1000
+      csi.PrintStates()
+      csi.EvalTransitions(t,nCells,cs.stateMatrix)
+      csi.PrintStates()
+
+      quit()
+
       #print(closeA[idxsCells], closeB[idxsCells])
       #idxCloseB=GetContacts(dists,idxsB,thresh=1)
 
