@@ -10,7 +10,7 @@ crowderDim:  50 # um
 crowderAttr: 1.
 #effectiveRad: 10 # um 
 
-nUpdates: 1000 # to match with exptl number of frames 
+nUpdates: 10000 # to match with exptl number of frames 
 friction: 100 # [1/ps] (time is in no relation to expt, treat as unitless here)
 containmentPotential: square   # how to contain particles 
 xPotential: True    # [True/False]

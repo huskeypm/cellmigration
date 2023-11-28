@@ -13,11 +13,44 @@ AA_to_NM = 0.1
 ## 
 ## FUNC
 ##
+def GetContacts(dists,idxs,thresh=2):
+    s=dists[:,idxs]
+    #print("sub",s)
+    cellMin = np.min(s,axis=1)
+    #idxClose = np.where(cellMin <= thresh) # will have one min distance for each cell
+    #print('cellMin',cellMin)
+    #print('iscloe',idxClose)
+    #idxClose=1
+    close = np.array(cellMin <= thresh,int)
+    #print(close)
+    return close
+def CalcRDFs(traj,solvAtomName,soluteAtomName):
+    """
+    Iteratures over all solute atoms to compute rdf 
+    """
+    solutes = []
+    for res in traj.top.residues:
+      if res.name == soluteAtomName:
+          solutes.append( res.index + 1 )  # zero indexed
+
+    if len(solutes)<1:
+        raise RuntimeError(soluteAtomName + " not found ") 
+
+    # just taker first for now
+    #print(solutes) 
+    mask1='@%s'%solvAtomName
+    mask2=':%d@%s'%(solutes[0],soluteAtomName)
+
+    CalcRDF(traj,mask1=mask1,mask2=mask2)
+
+    return 
+
 def CalcRDF(traj,
             mask1, # solvent
             mask2, # solute
             space=0.1,
-            bins=20):
+            bins=20,
+            display=False):
     #radial = pt.rdf(traj, solvent_mask=':WAT@O', solute_mask=':WAT@O', bin_spacing=0.2, maximum=12.)
     """ 
     Calculates radial distribution function
@@ -33,21 +66,24 @@ def CalcRDF(traj,
     #mask2=':28@AC'
 
     # rdf 
-    radial = pt.rdf(traj, solvent_mask=mask1, solute_mask=mask2, 
+    bins,rdf = pt.rdf(traj, solvent_mask=mask1, solute_mask=mask2, 
             bin_spacing=1,maximum=500 # space, maximum=bins
             ) 
 
     #print(np.shape(radial))
     #print(radial)
+    maxBin = bins[np.argmax(rdf)]
 
    
-    s = np.sum(radial[1])
-    plt.plot(radial[0]*AA_to_NM,radial[1]/s)
-    plt.xlabel("r [nm]") 
-    plt.ylabel("P") 
-    plt.title("RDF " + mask1 + " " + mask2)
-    plt.gcf().savefig("rdf.png",dpi=300) 
-    return radial 
+    if display:
+      s = np.sum(rdf)
+      plt.plot(bins*AA_to_NM,rdf/s)
+      plt.xlabel("r [nm]") 
+      plt.ylabel("P") 
+      plt.title("RDF " + mask1 + " " + mask2)
+      plt.gcf().savefig("rdf.png",dpi=300) 
+
+    return maxBin 
 
 def CalcProbDist(traj, mask='@RC',display=False):
 # for each particle, get dx in all directions, provide dt as input
@@ -189,10 +225,13 @@ def CalcD(traj,mask='@RC',csvName=None, display=False):
 
 ## get flux
 def CalcFlux(traj, mask='@RC',display=False):
-# for each particle, get dx in all directions, provide dt as input
-# select particles in some neighborhood of y=0?
-# grab dx along flux direction
-# sum(dx) / delta y
+  """
+  Gets particle flux across xThresh (0 for now) 
+  for each particle, get dx in all directions, provide dt as input
+  select particles in some neighborhood of y=0?
+  grab dx along flux direction
+  sum(dx) / delta y
+  """
   numFrames = (np.shape(traj.xyz))[0]
 
   ## get cells 
@@ -202,14 +241,18 @@ def CalcFlux(traj, mask='@RC',display=False):
   #print(traj.xyz[2,:,0])
   xThresh = -0.
 
+  # i can spread this out over an interval
+  xdiffs = traj.xyz[-1,indices,0] 
+  xdiffs -= traj.xyz[0,indices,0] 
   if display: 
     plt.figure()
-    diffs = traj.xyz[-1,indices,0] 
-    diffs -= traj.xyz[0,indices,0] 
     #print(traj.xyz[0,indices,0])
     #print(traj.xyz[-1,indices,0])
-    plt.hist(diffs)
+    plt.xlabel('P(xdisplacements)')
+    plt.title("XDisplacements(tf-t0)") 
+    plt.hist(xdiffs)
     plt.gcf().savefig("diffs.png") 
+  print("Mean displacement",np.mean(xdiffs))
   
 
 
@@ -234,11 +277,15 @@ def CalcFlux(traj, mask='@RC',display=False):
   #plt.plot(x,y)
   #plt.gcf().savefig("testxy.png") 
   if display:
+    plt.figure()
     print(l[0],l[-1],np.sum(fluxArea),np.average(fluxArea)*numFrames) # 320 frames 
-    plt.plot(l,label="#particles in x<thresh")     
-    plt.plot(fluxArea,label="flux*area")
-    plt.legend(loc=0)
-    plt.gcf().savefig("test.png") 
+    axl = plt.subplot(111)
+    axl.plot(fluxArea,label="flux*area")
+    axr = axl.twinx()
+    axr.plot(l,'r',label="#particles in x<thresh")     
+    axr.set_ylim(0,np.max(l)+1)
+    axr.legend(loc=0)
+    plt.gcf().savefig("flux.png",dpi=600) 
 
   return JA         
 

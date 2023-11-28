@@ -69,7 +69,7 @@ python3 brownian_v3.py -printVar
 ```
 python3 brownian_v3.py -yamlFile FILE.yaml -run
 ```
-- Example yaml files are provided in the source 
+- Example yaml files are provided in the tests/ directory. Check out the README.md file in that directory for more details. 
 - Run files and README.md for HPC (faust) are available in the ./run subdirectory
 
 <a name="analysis"></a>
