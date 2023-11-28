@@ -33,6 +33,7 @@ else:
 
 import lattice 
 import brown_util as bu
+import states
 import numpy as np
 
 ## INIT 
@@ -229,18 +230,6 @@ class Params():
 params = Params()
 
 
-print("PUT FUNC INTO BU") 
-def GetContacts(dists,idxs,thresh=2):
-    s=dists[:,idxs]
-    #print("sub",s)
-    cellMin = np.min(s,axis=1)
-    #idxClose = np.where(cellMin <= thresh) # will have one min distance for each cell
-    #print('cellMin',cellMin)
-    #print('iscloe',idxClose)
-    #idxClose=1
-    close = np.array(cellMin <= thresh,int)
-    #print(close)
-    return close
 
 
 import yaml
@@ -451,8 +440,8 @@ def runBD(
       # for debug
       #dists = np.array(dists,int)
       #print(dists)
-      closeA=GetContacts(dists,idxsA,thresh=paramDict["contactDistCrowderA"])
-      closeB=GetContacts(dists,idxsB,thresh=paramDict["contactDistCrowderB"])
+      closeA=bu.GetContacts(dists,idxsA,thresh=paramDict["contactDistCrowderA"])
+      closeB=bu.GetContacts(dists,idxsB,thresh=paramDict["contactDistCrowderB"])
       closeAs[i] = np.sum(closeA[idxsCells])
       closeBs[i] = np.sum(closeB[idxsCells])
       #print(closeA[idxsCells], closeB[idxsCells])

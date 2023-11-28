@@ -9,28 +9,83 @@ using a gillespie algorithm
 import numpy as np
 import matplotlib.pylab as plt
 
-nCells = 20
-
 # state, t0, k01, k12
 IDXSTATE=0
 IDXT0=1
 IDXK01=2
 IDXK12=3
 IDXK20=4
+IDXCA =5 # contact with A (0,1)
+IDXCB =6  # contact with A (0,1)
 # state - current state (0,1,2)
 # t0 - last time state flip
 # kij - rate to flip from i to j
-stateMatrix = np.zeros([nCells,5])
-stateMatrix[:,IDXSTATE]=0
-stateMatrix[:,IDXT0   ]=0 # for now np.array(-100*np.random.randn(nCells),int) # start before 0
-stateMatrix[:,IDXK01  ]=1e-2
-stateMatrix[:,IDXK12  ]=1e-3
-stateMatrix[:,IDXK20  ]=1e-4
 
 
+class CellSystem():
+  def __init__(self,nCells=10):
+    self.stateMatrix = np.zeros([nCells,7])
+    self.stateMatrix[:,IDXSTATE]=0
+    self.stateMatrix[:,IDXT0   ]=0 # for now np.array(-100*np.random.randn(nCells),int) # start before 0
+    self.stateMatrix[:,IDXK01  ]=1e-2
+    self.stateMatrix[:,IDXK12  ]=1e-3
+    self.stateMatrix[:,IDXK20  ]=1e-4
+    self.stateMatrix[:,IDXCA   ]=0.    
+    self.stateMatrix[:,IDXCB   ]=0.     
+    self.nCells = nCells
+
+  def Update(self,values,idx=IDXSTATE):
+    """
+    updates statematrix with current set of values    
+    """
+    self.stateMatrix[:,  idx   ]=values
+
+  def UpdateContactsA(self,values):
+    #print(values)
+    self.Update(values,idx=IDXCA)
+
+  def UpdateContactsB(self,values):
+    self.Update(values,idx=IDXCB)
+
+def EvalTransitions(t,nCells,stateMatrix):
+        w01 = np.exp(-(t-stateMatrix[:,IDXT0   ])*stateMatrix[:,IDXK01  ])
+        w12 = np.exp(-(t-stateMatrix[:,IDXT0   ])*stateMatrix[:,IDXK12  ])  
+        w20 = np.exp(-(t-stateMatrix[:,IDXT0   ])*stateMatrix[:,IDXK20  ])  
+        # Prob will occur  (1-not)
+        Poccur01 = np.array(np.random.rand(nCells) < 1-w01,int)
+        Poccur12 = np.array(np.random.rand(nCells) < 1-w12,int)
+        Poccur20 = np.array(np.random.rand(nCells) < 1-w20,int)
+        
+        
+        # TESTING 
+        #print(t,'r',r)
+        #Poccur01 = r < (1-w01)
+        #Poccur12 = r < (1-w12)
+        #Poccur20 = r < (1-w20)
+    
+        # find which changed 
+        # is in state 0, Poccur is True, and in contact with CA
+        idx0=np.where( (stateMatrix[:,IDXSTATE]==0) & (Poccur01) & (stateMatrix[:,IDXCA]==1))   
+        # is in state 1, Poccur is True, and in contact with CB
+        idx1=np.where( (stateMatrix[:,IDXSTATE]==1) & (Poccur12) & (stateMatrix[:,IDXCB]==1))
+        # is in state 2, Poccur is True, 
+        idx2=np.where( (stateMatrix[:,IDXSTATE]==2) & (Poccur20))
+        # 0->1    
+        stateMatrix[idx0,IDXSTATE]= 1
+        # 1->2 
+        stateMatrix[idx1,IDXSTATE]= 2
+        # 2->0
+        stateMatrix[idx2,IDXSTATE]= 0
+        
+        #print(idx0[0],idx1[0],idx2[0])
+        #nChanged = np.shape(idx0[0])[0] +np.shape(idx1[0])[0] + np.shape(idx2[0])[0]
+        #print(nChanged)
+        stateMatrix[idx0,IDXT0   ]=t
+        stateMatrix[idx1,IDXT0   ]=t
+        stateMatrix[idx2,IDXT0   ]=t
 
 
-def Iterator(stateMatrix):
+def Iterator(stateMatrix,nCells):
   # reset 
   #stateMatrix[:,IDXT0   ]=0
   #stateMatrix[:,IDXSTATE]=0
@@ -48,41 +103,8 @@ def Iterator(stateMatrix):
       t = i*interval
       # Prob not occur
       #print(t-stateMatrix[:,IDXT0   ])
-      def EvalTransitions(t,stateMatrix):
-        w01 = np.exp(-(t-stateMatrix[:,IDXT0   ])*stateMatrix[:,IDXK01  ])
-        w12 = np.exp(-(t-stateMatrix[:,IDXT0   ])*stateMatrix[:,IDXK12  ])  
-        w20 = np.exp(-(t-stateMatrix[:,IDXT0   ])*stateMatrix[:,IDXK20  ])  
-        # Prob will occur  (1-not)
-        Poccur01 = np.array(np.random.rand(nCells) < 1-w01,int)
-        Poccur12 = np.array(np.random.rand(nCells) < 1-w12,int)
-        Poccur20 = np.array(np.random.rand(nCells) < 1-w20,int)
-        
-        
-        # TESTING 
-        #print(t,'r',r)
-        #Poccur01 = r < (1-w01)
-        #Poccur12 = r < (1-w12)
-        #Poccur20 = r < (1-w20)
-    
-        # find which changed 
-        idx0=np.where( (stateMatrix[:,IDXSTATE]==0) & (Poccur01))   
-        idx1=np.where( (stateMatrix[:,IDXSTATE]==1) & (Poccur12))
-        idx2=np.where( (stateMatrix[:,IDXSTATE]==2) & (Poccur20))
-        # 0->1    
-        stateMatrix[idx0,IDXSTATE]= 1
-        # 1->2 
-        stateMatrix[idx1,IDXSTATE]= 2
-        # 2->0
-        stateMatrix[idx2,IDXSTATE]= 0
-        
-        #print(idx0[0],idx1[0],idx2[0])
-        #nChanged = np.shape(idx0[0])[0] +np.shape(idx1[0])[0] + np.shape(idx2[0])[0]
-        #print(nChanged)
-        stateMatrix[idx0,IDXT0   ]=t
-        stateMatrix[idx1,IDXT0   ]=t
-        stateMatrix[idx2,IDXT0   ]=t
   
-      EvalTransitions(t,stateMatrix)
+      EvalTransitions(t,nCells,stateMatrix)
   
       # update 
       states[i,:]=stateMatrix[:,IDXSTATE]
@@ -104,4 +126,80 @@ def Iterator(stateMatrix):
   plt.legend(loc=0)
   plt.gcf().savefig('test.png')
 
-Iterator(stateMatrix)
+#!/usr/bin/env python
+import sys
+##################################
+#
+# Revisions
+#       10.08.10 inception
+#
+##################################
+
+#
+# ROUTINE  
+#
+def doit(fileIn):
+  nCells = 5
+  cs = CellSystem(nCells=nCells)
+
+  cs.UpdateContactsA( np.ones(nCells) ) 
+  cs.UpdateContactsB( np.ones(nCells) ) 
+
+  t =0 
+  EvalTransitions(t,nCells,cs.stateMatrix) 
+
+  Iterator(cs.stateMatrix,cs.nCells)
+
+
+#
+# Message printed when program run without arguments 
+#
+def helpmsg():
+  scriptName= sys.argv[0]
+  msg="""
+Purpose: 
+ 
+Usage:
+"""
+  msg+="  %s -validation" % (scriptName)
+  msg+="""
+  
+ 
+Notes:
+
+"""
+  return msg
+
+#
+# MAIN routine executed when launching this script from command line 
+#
+if __name__ == "__main__":
+  import sys
+  msg = helpmsg()
+  remap = "none"
+
+  if len(sys.argv) < 2:
+      raise RuntimeError(msg)
+
+  #fileIn= sys.argv[1]
+  #if(len(sys.argv)==3):
+  #  1
+  #  #print "arg"
+
+  # Loops over each argument in the command line 
+  for i,arg in enumerate(sys.argv):
+    # calls 'doit' with the next argument following the argument '-validation'
+    if(arg=="-validation"):
+      doit("SDF")      
+      quit()
+  
+
+
+
+
+
+  raise RuntimeError("Arguments not understood")
+
+
+
+
