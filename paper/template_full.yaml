@@ -1,20 +1,26 @@
-# corresponds to about a 75% occupied volume fraction if crowderrad=10 
+# cells
 nCells: 20  # adjust me to mirror exptl data 
 cellRad:  5   # um 
 cellAttr: 0.1   #
 friction: 100 # [1/ps] (time is in no relation to expt, treat as unitless here)
+states: False 
+
+# Crowders corresponds to about a XXX% occupied volume fraction if crowderrad=10 
 nCrowders:  9   # since we double this, it is a good idea to make sure 2x this number is compatible w domain dimensions
 crowderRad: 15  # um
 crowderAttr: 0.1
 
+# domain
 domainXDim: 100
 domainYDim:  50
 crowderDim:  50 # um
-
-nUpdates: 100000 # to match with exptl number of frames 
 containmentPotential: square   # how to contain particles 
 xPotential: False   # [True/False]
 xScale: 1.0        # scale for chemoattractant gradient (when xpotential is true)  
 yPotential: False # [True/False] 
+yScale: 20 # scale for wall attractions
+
+# simulation 
+nUpdates: 100000 # to match with exptl number of frames 
 outName: template
 
