@@ -1,6 +1,7 @@
 # cellmigration
 1. [ Description ](#desc)
-2. [ Installation ](#install)
+2. [ Getting started ](#start)
+   [ Installation ](#install)
 3. [ Usage tips ](#usage)
 4. [ Analysis ](#analysis)
 5. [ Advanced ](#advanced)
@@ -11,6 +12,11 @@
 - An openmm-based cell simulator
 - Originally based on the OpenmmKant repo created by Ben Chun
 - Code for running langevin particle simulations
+
+# Getting started
+<a name="start"></a>
+- Refer to https://colab.research.google.com/drive/1Txu8ufScId-AqEvYnLM-yJx1kzMM_256?usp=sharing for a colab notebook that can quickly get you started
+- The notebook is also copied here: conda_openmm_pytraj.ipynb
 
 
 <a name="install"></a>
@@ -84,8 +90,15 @@ python processYaml.py -yaml tests/expt.yaml
 This will print all of the parameters in csv format as well as an output yaml file
 
 
-<a name="advanced"></a>
 ## Advanced
+<a name="advanced"></a>
+
+### Visualization
+- Recommend using vmd to visusalize the output pdb and dcd files
+  
+### Yaml files
+- Refer to tests/README.md for example inputs
+  
 ### jupyter SSH 
 - on remote host 
 ```
@@ -102,11 +115,10 @@ The framerate parameter is set to #/min 1 fr/90s
 The distance units in the code are assumed to be [um] though openmm assumes [nm]
 The friction parameter was adjusted s.t. the MSD at the last frame was close to the expt value
 
-
 ### generating jobs for faust
 Use master.ipynb on faust 
 
-### TODO
+## TODO
 - Can't get particle packing greater than 9/check that effectiveDim is helpful 
 - ATP gradient is small
 - Can we restrict particles to be in boundary left of the box 

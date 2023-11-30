@@ -23,6 +23,7 @@ def GetContacts(dists,idxs,thresh=2):
     close = np.array(cellMin <= thresh,int)
     #print(close)
     return close
+
 def CalcRDFs(traj,solvAtomName,soluteAtomName):
     """
     Iteratures over all solute atoms to compute rdf 
@@ -223,7 +224,7 @@ def CalcD(traj,mask='@RC',csvName=None, display=False):
 
   if display: 
     plt.figure()
-    plt.plot(ts,rmsd)
+    plt.plot(ts_MIN[equilFrame:],msd_NMNM[equilFrame:])
     plt.gcf().savefig(csvName+".png")
 
   # x**2 = 4*D*t
