@@ -1,22 +1,25 @@
 # cells
 nCells: 20  # adjust me to mirror exptl data 
-cellRad:  5   # um 
+cellRad:  4   # um 
 cellAttr: 0.1   #
 friction: 100 # [1/ps] (time is in no relation to expt, treat as unitless here)
 states: False 
+xThresh: -5.  # want this to be below Y/2 dim gneerallly
 
 # Crowders corresponds to about a XXX% occupied volume fraction if crowderrad=10 
-nCrowders:  9   # since we double this, it is a good idea to make sure 2x this number is compatible w domain dimensions
-crowderRad: 15  # um
+nCrowders: 8   # since we double this, it is a good idea to make sure 2x this number is compatible w domain dimensions
+crowderRad: 7.5 # um
 crowderAttr: 0.1
+#effectiveRad: 10 # um
+
 
 # domain
-domainXDim: 100
-domainYDim:  50
 crowderDim:  50 # um
+domainXDim: 100
+domainYDim:  55 # NOTE: in order to get vol frac correct, use crowderDim+crowderRad
 containmentPotential: square   # how to contain particles 
 xPotential: False   # [True/False]
-xScale: 1.0        # scale for chemoattractant gradient (when xpotential is true)  
+xScale: 5.0        # scale for chemoattractant gradient (when xpotential is true)  
 yPotential: False # [True/False] 
 yScale: 20 # scale for wall attractions
 

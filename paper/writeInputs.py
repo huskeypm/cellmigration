@@ -71,11 +71,14 @@ def WriteYaml(contents, fileName,verbose=True):
     print("Created yaml file ",fileName)
 
 # for a given key, write rescaled calues 
-def WriteIterativeYaml(auxParams,daKey,varIter=3,varRuns=2):
-  print('path',params.path) 
+def WriteIterativeYaml(auxParams,daKey,varIter=3,varRuns=2,writeFile=None):
+  #print('path',params.path,'exec',params.cmd) 
+
   dflt = auxParams[daKey] 
   vals = RescaleValues(dflt,nIter=varIter,key=daKey) 
+
   # range of vals
+  cmds = []
   for val in vals:
     val = float(val) 
     #print(val) 
@@ -96,7 +99,16 @@ def WriteIterativeYaml(auxParams,daKey,varIter=3,varRuns=2):
 
       yaml.safe_dump(outParams, sort_keys=False)
       WriteYaml(outParams,fullWriteName,verbose=False)
-      print(params.cmd+" -yamlFile " + writeName+" -run")
+      daCmd = (params.cmd+" -yamlFile " + writeName+" -run")
+      cmds.append(daCmd)
+  ##########################     
+  if writeFile is not None:
+    with open(writeFile,'w') as f:
+      [f.write(i+"\n") for i in cmds]
+      print("Wrote "+writeFile)
+  else:
+      [print(i) for i in cmds]
+
     
 #!/usr/bin/env python
 ##
