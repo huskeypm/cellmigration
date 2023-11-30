@@ -1,6 +1,7 @@
 # cellmigration
 1. [ Description ](#desc)
-2. [ Installation ](#install)
+2. [ Getting started ](#start)
+   [ Installation ](#install)
 3. [ Usage tips ](#usage)
 4. [ Analysis ](#analysis)
 5. [ Advanced ](#advanced)
@@ -11,6 +12,10 @@
 - An openmm-based cell simulator
 - Originally based on the OpenmmKant repo created by Ben Chun
 - Code for running langevin particle simulations
+
+# Getting started
+<a name="start"></a>
+- Refer to https://colab.research.google.com/drive/1Txu8ufScId-AqEvYnLM-yJx1kzMM_256?usp=sharing for a colab notebook that can quickly get you started
 
 
 <a name="install"></a>
