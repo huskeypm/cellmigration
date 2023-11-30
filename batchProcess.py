@@ -113,7 +113,7 @@ def processYamls(figName,
       #print(tag,condVal)
   
       # process 
-      if LoadTraj(trajName,warningOnly) is None:
+      if bu.LoadTraj(trajName,warningOnly) is None:
         continue 
       
       Di,JA = ProcessTraj(trajName,display=display) 

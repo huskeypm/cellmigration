@@ -1,5 +1,4 @@
 import numpy as np 
-import pytraj as pt
 import matplotlib.pylab as plt
 
 equilFrame = 400
@@ -51,6 +50,7 @@ def CalcRDF(traj,
             space=0.1,
             bins=20,
             display=False):
+    import pytraj as pt
     #radial = pt.rdf(traj, solvent_mask=':WAT@O', solute_mask=':WAT@O', bin_spacing=0.2, maximum=12.)
     """ 
     Calculates radial distribution function
@@ -90,6 +90,7 @@ def CalcProbDist(traj, mask='@RC',display=False):
 # select particles in some neighborhood of y=0?
 # grab dx along flux direction
 # sum(dx) / delta y
+  import pytraj as pt
   numFrames = (np.shape(traj.xyz))[0]
 
   ## get cells
@@ -149,25 +150,34 @@ def meanSquareDisplacements(xs, ys, nUpdates):
     return msds
 
 # casename should include full path 
-def LoadTraj(caseName):
+def LoadTraj(caseName,warningOnly=False):
+    import pytraj as pt 
     # load
     try:
       dcd=caseName+".dcd"; pdb=caseName+".pdb"
       traj = pt.iterload(dcd,pdb)
     except:
-      raise RuntimeError("You're likely missing a file like %s"%dcd)
+      if warningOnly:
+        print("You're likely missing a file like %s"%dcd)
+        return None 
+      else: 
+        raise RuntimeError("You're likely missing a file like %s"%dcd)
     print("Loaded %s"%dcd)
+
     return traj
 
 def CalcVolFrac(auxParams): 
-  d = auxParams['domainDim']
+  """ 
+  assumes vol frac is defined by domainYDim (domainYDim = crowderDim + crowderRad)
+  """
+
+  d = auxParams['domainYDim']
   n = auxParams['nCrowders']
 
-  if auxParams['effectiveRad'] is None:
-    r = auxParams['crowderRad']
-  else:
-    r = auxParams['effectiveRad']
-    print("USING EFFECTIVE RADIUS") 
+  r = auxParams['crowderRad']
+  if('effectiveRad' in auxParams.keys() and auxParams['effectiveRad'] is not None):
+      print("using eff. radius for vol frac") 
+      r = auxParams['effectiveRad']
 
   volFrac = CalcVolFraction(n,d,r)
 
@@ -184,6 +194,7 @@ def CalcVolFraction(
     return volFrac
 
 def CalcD(traj,mask='@RC',csvName=None, display=False):
+  import pytraj as pt 
   # in A^2 
   rmsd = pt.rmsd(traj, mask='@RC', ref=0)
   #print(rmsd[0:10])
@@ -232,6 +243,7 @@ def CalcFlux(traj, mask='@RC',display=False):
   grab dx along flux direction
   sum(dx) / delta y
   """
+  import pytraj as pt 
   numFrames = (np.shape(traj.xyz))[0]
 
   ## get cells 
@@ -374,3 +386,112 @@ def LoadPKLData(trajOutName="test.pkl"):
     nParticles = np.shape(xs)[0]
 
     return ts,xs,ys,nUpdates,nParticles
+###                           PDB Generator                             ###
+###########################################################################
+
+def genPDBWrapper(
+        pdbFileName,
+        nCellsType1,   # generally the diffusing cells 
+        nCellsType2=0, # generally the crowders 
+        startingPositions=None):
+    """
+    This is a wrapper for Ben's PDB writer, siunce I needed something simple.
+    Later I can revise his code to accept coordinates; currently they're randomized 
+    """
+    #print(startingPositions) 
+    PDBgenNoPBC(pdbFileName,nCellsType1,nCellsType2,0,0,"None",startingPositions=startingPositions)
+    
+
+def PDBgenNoPBC(PDBfileName,
+                NoCell1, 
+                NoCell2,
+                numOfDeadCell,
+                num_BP,
+                DiffState,  
+                startingPositions=None):
+    '''
+    
+    [Note]: 11/06/2020 by Ben 
+    In this function, having all resting cells or activated cells will not cause any error.
+    
+    [Parameter Description]
+    PDBfileName:    pdb file name
+    NoCell1:        a total number of cells in the 1st half of box: should be resting cells
+    NoCell2:        a total number of cells in the 2nd half of box: should be activated cells 
+
+    '''    
+    # --- Writing pdb file initiated ---
+    daFile = PDBfileName
+    if ".pdb" not in daFile:
+        daFile = daFile+".pdb"
+    structure = open(daFile,"w") 
+    structure.write("MODEL     1 \n")
+
+    '''
+    [------First half of box-------]
+    '''
+    # determining a total number of resting cells from the overall population
+    ## the rest of cells are activated cells
+    
+    TotalNoCell = NoCell1 + NoCell2 + numOfDeadCell + num_BP
+    refnum1 = NoCell1 + NoCell2
+    refnum2 = refnum1 + num_BP
+    refnum3 = numOfDeadCell + NoCell1
+    refnum4 = refnum3 + NoCell2
+    
+    ## Dead Cell first: There is no distinction between 1st and 2nd compartment for the dead cells 
+    for i in np.arange(TotalNoCell):
+        # add random positions if starting positions are not defined 
+        if startingPositions is None:
+          x = randint(0,9)
+          y = randint(0,9)
+          z = randint(0,9)
+        else:
+          #print(np.shape(startingPositions))
+          x,y,z = startingPositions[i,:]
+
+        # make sure num sig. figs is correct for pdb
+        x = format(x,'8.3f') # any changest to this need to be reflected in spacing below 
+        y = format(y,'8.3f')
+        z = format(z,'8.3f')
+        
+        if numOfDeadCell == 0:
+            if i < NoCell1:
+                name = 'RC'
+            elif NoCell1 <= i < refnum1 :
+                if DiffState =='steady':
+                    name = 'RC'
+                else:
+                    name = 'AC'
+            else:
+                name = 'BC'
+        else:
+            if i < numOfDeadCell:
+                name = 'DC'
+            elif numOfDeadCell <= i < refnum3: 
+                name = 'RC'
+            elif refnum3 <= i < refnum4:
+                if DiffState == 'steady':
+                    name = 'RC'
+                else:
+                    name = 'AC'
+            else:
+                name = 'BC'
+
+        if i < 9:
+            structure.write("ATOM      "+str(int(i+1))+"  "+name+"   "+name+"     "    +str(int(i+1))+"    "+str(x)+""+str(y)+""+str(z)+"  1.00  0.00 \n")
+        elif i >= 9 and i < 99:
+            structure.write("ATOM     "+ str(int(i+1))+"  "+name+"   "+name+  "    "   +str(int(i+1))+"    "+str(x)+""+str(y)+""+str(z)+"  1.00  0.00 \n")
+        elif i >= 99 and i < 999:
+            structure.write("ATOM    "+  str(int(i+1))+"  "+name+"   "+name+    "   "  +str(int(i+1))+"    "+str(x)+""+str(y)+""+str(z)+"  1.00  0.00 \n")
+        elif i >= 999 and i < 9999:
+            structure.write("ATOM   "+   str(int(i+1))+"  "+name+"   "+name+      "  " +str(int(i+1))+"    "+str(x)+""+str(y)+""+str(z)+"  1.00  0.00 \n")
+        elif i >= 9999:
+            structure.write("ATOM  "+    str(int(i+1))+"  "+name+"   "+name+        " "+str(int(i+1))+"    "+str(x)+""+str(y)+""+str(z)+"  1.00  0.00 \n")
+            
+    structure.write("ENDMDL")
+    structure.close
+                   
+    return
+        
+

@@ -15,7 +15,7 @@ K01: 1e-3
 K12: 1e-3
 K20: 1e-2
 
-nUpdates: 1000 # to match with exptl number of frames 
+nUpdates: 10000 # to match with exptl number of frames 
 friction:  50 # [1/ps] (time is in no relation to expt, treat as unitless here)
 containmentPotential: square   # how to contain particles 
 xPotential: False   # [True/False]
