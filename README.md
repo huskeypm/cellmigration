@@ -13,6 +13,8 @@
 - Originally based on the OpenmmKant repo created by Ben Chun
 - Code for running langevin particle simulations
 
+For the time being, the cells (mobile) are labeled with the atom @RC, while the immobile crowders are labeled as @AC. 
+
 # Getting started
 <a name="start"></a>
 - Refer to https://colab.research.google.com/drive/1Txu8ufScId-AqEvYnLM-yJx1kzMM_256?usp=sharing for a colab notebook that can quickly get you started
