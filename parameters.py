@@ -1,6 +1,7 @@
 ##############################################################################
 # Global parameters
 ##############################################################################
+from simtk.unit import kelvin, picosecond, femtosecond, nanometer, dalton
 
 class Params():
   """
