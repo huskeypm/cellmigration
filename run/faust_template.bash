@@ -19,7 +19,7 @@ export PYTHON=`which python` # /cm/shared/apps/anaconda3/envs/SEEKR/bin/python
 # See readme 
 export SRC=/home/pkekeneshuskey/source/cellmigration/
 export EXEC="$PYTHON $SRC/brownian_v4.py"
-export RUNDIR=/data/pkekeneshuskey/231129/                     
+export RUNDIR=/data/pkekeneshuskey/231201/                     
 export RUNFILE="01master"  # in RUNDIR  
 
 cd $RUNDIR 

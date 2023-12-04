@@ -13,6 +13,9 @@ AA_to_NM = 0.1
 ## FUNC
 ##
 def GetContacts(dists,idxs,thresh=2):
+    """
+    Determines when two particles or more particles are colliding
+    """
     s=dists[:,idxs]
     #print("sub",s)
     cellMin = np.min(s,axis=1)
@@ -26,7 +29,7 @@ def GetContacts(dists,idxs,thresh=2):
 
 def CalcRDFs(traj,solvAtomName,soluteAtomName):
     """
-    Iteratures over all solute atoms to compute rdf 
+    Iterates over all solute atoms to compute rdf 
     """
     solutes = []
     for res in traj.top.residues:
@@ -87,10 +90,12 @@ def CalcRDF(traj,
     return maxBin 
 
 def CalcProbDist(traj, mask='@RC',display=False):
-# for each particle, get dx in all directions, provide dt as input
-# select particles in some neighborhood of y=0?
-# grab dx along flux direction
-# sum(dx) / delta y
+  """
+  Computes probability distribution and potential of mean force 
+  (via boltzmann inversion) 
+  for each particle, get dx in all directions, provide dt as input
+  select particles in some neighborhood of y=0?
+  """
   import pytraj as pt
   numFrames = (np.shape(traj.xyz))[0]
 
@@ -127,14 +132,6 @@ def CalcProbDist(traj, mask='@RC',display=False):
     plt.gcf().savefig("pmf.png",dpi=300)
 
   return p,X,Y
-
-def PlotStuff(
-  msds,
-  ts,
-  outName=None
-  ):     
-  raise RuntimeError("PLOTSTUFF has been renamed; use CalcMSD instead\n") 
-  CalcMSD(ts,msds,outName=outName)
 
 def meanSquareDisplacements(xs, ys, nUpdates):
     x0s = xs[:,0]
@@ -188,6 +185,10 @@ def CalcVolFraction(
     nCrowder,
     dimRegion=200.,
     crowderRad=10.):
+    """
+    Calculates the volume fraction occupied by crowders
+    Works better once an effective radius is computed via simulatons/probability distribution
+    """
     
     areaCrowder= nCrowder *np.pi * crowderRad **2
     areaRegion= dimRegion**2
@@ -195,6 +196,9 @@ def CalcVolFraction(
     return volFrac
 
 def CalcD(traj,mask='@RC',csvName=None, display=False):
+  """
+  Calculates diffusion coefficient via mean squared displacements
+  """
   import pytraj as pt 
   # in A^2 
   rmsd = pt.rmsd(traj, mask='@RC', ref=0)
@@ -236,7 +240,7 @@ def CalcD(traj,mask='@RC',csvName=None, display=False):
 
 
 ## get flux
-def CalcFlux(traj, mask='@RC',display=False):
+def CalcFlux(traj, mask='@RC',display=False,xThresh=0):
   """
   Gets particle flux across xThresh (0 for now) 
   for each particle, get dx in all directions, provide dt as input
@@ -252,7 +256,6 @@ def CalcFlux(traj, mask='@RC',display=False):
   
   # xyz: frames, natoms, coords
   #print(traj.xyz[2,:,0])
-  xThresh = -0.
 
   # i can spread this out over an interval
   xdiffs = traj.xyz[-1,indices,0] 
@@ -294,6 +297,7 @@ def CalcFlux(traj, mask='@RC',display=False):
     print(l[0],l[-1],np.sum(fluxArea),np.average(fluxArea)*numFrames) # 320 frames 
     axl = plt.subplot(111)
     axl.plot(fluxArea,label="flux*area")
+    axl.set_xlim(0,2500)
     axr = axl.twinx()
     axr.plot(l,'r',label="#particles in x<thresh")     
     axr.set_ylim(0,np.max(l)+1)

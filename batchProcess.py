@@ -34,6 +34,7 @@ dt = FRAME_CONV  # [min]
 
 def ProcessTraj(caseName,display=False): 
     # LoadTraj
+    caseName = caseName.replace('.yaml',"")
     traj = bu.LoadTraj(caseName)
 
     #, get RDF
@@ -89,6 +90,7 @@ def processYamls(figName,
           ) 
 
   #print(yamlNames[0]) 
+  skipped = []
   for yamlName in yamlNames:
       # open yaml
       #yamlName = path+"/"+yamlName
@@ -114,6 +116,7 @@ def processYamls(figName,
   
       # process 
       if bu.LoadTraj(trajName,warningOnly) is None:
+        skipped.append(trajName)
         continue 
       
       Di,JA = ProcessTraj(trajName,display=display) 
@@ -128,6 +131,9 @@ def processYamls(figName,
   outCsv = path+figName+".csv"       
   print("printed %s"%outCsv)
   df.to_csv(outCsv)               
+
+  if len(skipped)>0:
+    print("The following were skipped ", skipped)
   
 
 import sys
