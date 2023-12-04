@@ -278,12 +278,19 @@ def CalcFlux(traj, mask='@RC',display=False,xThresh=0):
   #l =np.array(traj.xyz[:,0,0] < xThresh, dtype=int) 
   #r =np.array(traj.xyz[:,0,0] >=xThresh, dtype=int) 
   #print(np.sum(l),np.sum(r))
+  # indicates which of the particles are left of xThresh
   l =np.array(traj.xyz[:,indices,0] < xThresh, dtype=int) 
+  # counts number of particles left of xThresh for each time step 
   l =np.sum(l,axis=1)
   # if the population in the compartment changes between two times, then a particle has entered/left
   diff = np.diff(l)  
   fluxArea = diff/dt # not normalizing by area
   JA = np.average(fluxArea)
+
+  # get cumulative mean 
+  timeSoFar = np.arange( np.shape(diff)[0] )+1
+  cummean = np.cumsum(diff)/timeSoFar
+  
   if (l[-1] < 0.1*l[0]):
       print("WARNING: compartment is nearly depleted/flux estimates may be unreliable") 
   #print("J*A = %f "%JA)
@@ -294,14 +301,16 @@ def CalcFlux(traj, mask='@RC',display=False,xThresh=0):
   #plt.gcf().savefig("testxy.png") 
   if display:
     plt.figure()
-    print(l[0],l[-1],np.sum(fluxArea),np.average(fluxArea)*numFrames) # 320 frames 
+    print("Flux",l[0],l[-1],np.sum(fluxArea),np.average(fluxArea)*numFrames) # 320 frames 
     axl = plt.subplot(111)
     axl.plot(fluxArea,label="flux*area")
+    axl.plot(timeSoFar[100:],cummean[100:],label="flux*area")
     axl.set_xlim(0,2500)
     axr = axl.twinx()
     axr.plot(l,'r',label="#particles in x<thresh")     
     axr.set_ylim(0,np.max(l)+1)
-    axr.legend(loc=0)
+    axl.legend(loc=1)
+    axr.legend(loc=2)
     plt.gcf().savefig("flux.png",dpi=600) 
 
   return JA         
