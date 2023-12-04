@@ -1,4 +1,4 @@
-Yaml files are used to feed parameters into the simulation. A basic example is provided below:
+# Yaml files are used to feed parameters into the simulation. A basic example is provided below:
 ```
 # example.yaml
 nCells: 30  # num of cells 
@@ -19,7 +19,11 @@ xScale: 0.1        # scale for chemoattractant gradient (when xpotential is true
 yPotential: False # [True/False] chemotraction
 outName: expt
 ```
-Examples in this directory
+
+# Full parameters
+The best bet for listing all parameters at this point is by reviewing parameters.py in the base directory 
+
+# Examples in this directory
 - square.yaml - imposes square (rectangle actually) potential to contain particles
 - cylinder.yaml - imposes cylinder potential to contain particles
 - expt.yaml - parameters needed to reproduce expt w/o ATP 
