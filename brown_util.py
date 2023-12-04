@@ -240,27 +240,24 @@ def CalcD(traj,mask='@RC',csvName=None, display=False):
 
 
 ## get flux
-def CalcFlux(traj, mask='@RC',display=False,xThresh=0):
+def CalcFlux(traj, mask='@RC',display=False,xThresh=0,margin=None): 
   """
   Gets particle flux across xThresh (0 for now) 
   for each particle, get dx in all directions, provide dt as input
-  select particles in some neighborhood of y=0?
-  grab dx along flux direction
-  sum(dx) / delta y
+  select particles in some marging of xThresh   
   """
-  import pytraj as pt 
-  numFrames = (np.shape(traj.xyz))[0]
 
   ## get cells 
+  import pytraj as pt
   indices = pt.select_atoms(traj.top, mask) 
   
   # xyz: frames, natoms, coords
   #print(traj.xyz[2,:,0])
 
   # i can spread this out over an interval
-  xdiffs = traj.xyz[-1,indices,0] 
-  xdiffs -= traj.xyz[0,indices,0] 
   if display: 
+    xdiffs = traj.xyz[-1,indices,0] 
+    xdiffs -= traj.xyz[0,indices,0] 
     plt.figure()
     #print(traj.xyz[0,indices,0])
     #print(traj.xyz[-1,indices,0])
@@ -273,24 +270,73 @@ def CalcFlux(traj, mask='@RC',display=False,xThresh=0):
 
 
   
-  # below Thresh (only need to track one 'compartment' for now since we are dividing the space into two sections
-  # along x direction 
-  #l =np.array(traj.xyz[:,0,0] < xThresh, dtype=int) 
-  #r =np.array(traj.xyz[:,0,0] >=xThresh, dtype=int) 
-  #print(np.sum(l),np.sum(r))
-  # indicates which of the particles are left of xThresh
-  l =np.array(traj.xyz[:,indices,0] < xThresh, dtype=int) 
-  # counts number of particles left of xThresh for each time step 
-  l =np.sum(l,axis=1)
-  # if the population in the compartment changes between two times, then a particle has entered/left
-  diff = np.diff(l)  
-  fluxArea = diff/dt # not normalizing by area
-  JA = np.average(fluxArea)
+  ## below Thresh (only need to track one 'compartment' for now since we are dividing the space into two sections
+  ## along x direction 
+  ##l =np.array(traj.xyz[:,0,0] < xThresh, dtype=int) 
+  ##r =np.array(traj.xyz[:,0,0] >=xThresh, dtype=int) 
+  ##print(np.sum(l),np.sum(r))
+  ## indicates which of the particles are left of xThresh
+  #l =np.array(traj.xyz[:,indices,0] < xThresh, dtype=int) 
+  ## counts number of particles left of xThresh for each time step 
+  #l =np.sum(l,axis=1)
+  ## if the population in the compartment changes between two times, then a particle has entered/left
+  #diff = np.diff(l)  
+  #fluxArea = diff/dt # not normalizing by area
+  #JA = np.average(fluxArea)
+
+  
+  # for testing 
+  if False: 
+    n = 5
+    z = np.outer(np.arange(n) + 0.01*np.random.randn(n),[1,1]) 
+    z[:,1] = n - np.arange(n) + 0.01*np.random.randn(n)
+    lz=np.array(
+    [[1,5,0,3,5],    
+     [2,4,2,2,5], 
+     [3,3,4,3,2],
+     [4,2,2,2,2], 
+     [5,1,0,3,2]]
+    )
+    #print(np.shape(z))
+  xs = traj.xyz[:,indices,0]      
+  zshifted = xs - xThresh  # values to the right of xThresh are positive; otherwise negative
+  #print(zshifted)
+  
+  # exclude those outside of margin 
+  if margin is not None: 
+    zshifted[ np.abs(zshifted)> margin] = 0
+    #print(zshifted)
+  
+  
+  p = zshifted[1:,] * zshifted[0:-1,] # if the product is negative, the particle has crossed the threshold (l or r)
+  #print(p)
+  #negIdx = np.argwhere(p<0)
+  #print(negIdx) # just for easy visualization 
+  negIdx = np.where(p<0)
+  changed = np.zeros_like(p)
+  changed[negIdx]=1
+  #print(changed)
+  
+  zshifted = zshifted[1:,] 
+  logic = zshifted * changed # if negative (e.g. zshift<0, p=1),particle moved left
+                                  # else particle moved right
+  changed[ logic < 0 ] *= -1
+  
+  
+  #print(changed)
+  netCrossed=np.sum(changed,axis=1)
+  #print(netCrossed)
+  
+  
+
 
   # get cumulative mean 
-  timeSoFar = np.arange( np.shape(diff)[0] )+1
-  cummean = np.cumsum(diff)/timeSoFar
+  timeSoFar = np.arange( np.shape(netCrossed)[0] )+1
+  cummean = np.cumsum(netCrossed)/timeSoFar
+  JA = cummean[-1]
   
+  l =np.array(traj.xyz[:,indices,0] < xThresh, dtype=int) 
+  l =np.sum(l,axis=1)
   if (l[-1] < 0.1*l[0]):
       print("WARNING: compartment is nearly depleted/flux estimates may be unreliable") 
   #print("J*A = %f "%JA)
@@ -301,11 +347,11 @@ def CalcFlux(traj, mask='@RC',display=False,xThresh=0):
   #plt.gcf().savefig("testxy.png") 
   if display:
     plt.figure()
-    print("Flux",l[0],l[-1],np.sum(fluxArea),np.average(fluxArea)*numFrames) # 320 frames 
+    print("Flux",l[0],l[-1],cummean[-1] )
     axl = plt.subplot(111)
-    axl.plot(fluxArea,label="flux*area")
+    #axl.plot(fluxArea,label="flux*area")
     axl.plot(timeSoFar[100:],cummean[100:],label="flux*area")
-    axl.set_xlim(0,2500)
+    #axl.set_xlim(0,2500)
     axr = axl.twinx()
     axr.plot(l,'r',label="#particles in x<thresh")     
     axr.set_ylim(0,np.max(l)+1)
