@@ -7,7 +7,7 @@ class Params():
   Class the contains paramDict object with program parameters"
   """
   def __init__(self):
-
+    paramDict = dict()
     #paramDict["friction"] = ( 50 / picosecond ) # rescaling to match exptl data PKH  
     paramDict["friction"] = ( 50              ) # rescaling to match exptl data PKH  
     paramDict["timestep"] = 10.0 * femtosecond# 1e-11 s --> * 100 --> 1e-9 [ns] 
