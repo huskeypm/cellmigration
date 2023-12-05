@@ -75,6 +75,7 @@ def GenerateCrowderLattice(
   """ 
   Places crowders on a regular lattice with symmetric dimensions 
   """
+  print("Placing crowders") 
   nRow = int( np.ceil( np.sqrt( nCrowders ) )  )
   nLattice=nRow**2
 
@@ -109,6 +110,7 @@ def GenerateRandomLattice(
   """
   # later should adjust for asymmetric dimensions, but ignore for 
   # now 
+  print("Creating cell lattice") 
   nLattice = 100
   nRow     =  int(np.sqrt(nLattice)) 
   if nCells > nLattice:
@@ -117,16 +119,19 @@ def GenerateRandomLattice(
   latticePts = GenerateLattice(nLattice,nRow,dims,effDim=(cellRad*2))
 
   # only keep entries to the left of xThresh
-  print(xThresh)
   if xThresh is not None:
     xs = latticePts[:,0]
     idx = np.where( xs <= xThresh)
     #print(np.shape(latticePts))
     latticePts = latticePts[idx[0],:]
-    #print(np.shape(latticePts))
+    print(np.shape(latticePts))
+
+  nLattice = np.shape(latticePts)[0]
+  if nCells > nLattice:
+    raise RuntimeError("too many cells for lattice size %d"%nLattice)
     
 
-  latticeIdxs= np.arange( np.shape(latticePts)[0])
+  latticeIdxs= np.arange( nLattice )
 
   # typecast
   nCells = int(nCells)
