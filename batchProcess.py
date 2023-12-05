@@ -45,11 +45,13 @@ def ProcessTraj(caseName,display=False):
 #
     ## get J,D    
     Di=bu.CalcD(traj,mask='@RC',csvName=caseName)                        
-    JA=bu.CalcFlux(traj,mask='@RC',display=display)
+    xThresh = 300 # AA
+    xThresh = 600 # AA
+    JA=bu.CalcFlux(traj,mask='@RC',display=display,xThresh=xThresh)
     print("Di %f J %f"%(Di,JA))
 
     # get 2D histogram of populations
-    bu.CalcProbDist(traj,mask='@RC',display=display)
+    bu.CalcProbDist(traj,mask='@RC',caseName=caseName,display=display)
 
     return Di,JA 
 

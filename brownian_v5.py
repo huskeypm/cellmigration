@@ -7,6 +7,7 @@
 import matplotlib.pylab as plt
 from scipy.spatial.distance import cdist,pdist, squareform
 import random
+import update as up
 
 
 """
@@ -178,106 +179,6 @@ class CustomForce(mm.CustomExternalForce):
 # allocate instance 
 import parameters 
 params = parameters.Params()
-
-print("MOVE UPDATES TO BROWN_UTIL") 
-from scipy.spatial import distance
-def UpdateBoundary(simulation,paramDict,x,nCells):
-  """
-  Apply absorbing bounadary on right hand side. Deletes particles on right; move them to left
-  x - current atom positions
-  nCells
-  """
-  # find things near other boundary 
-  xys = x[:nCells,0:2]
-  absorbing = paramDict["domainXDim"]/2 - paramDict["absorbingMargin"]
-
-  #absorbing = -26  
-  #print(xys, absorbing)
-  moved = np.where( xys[:,0] > absorbing )
-  nMoved = len(moved[0])
-  if nMoved < 1: 
-    return 0 
-  print("moving %d particle (%f)"%(nMoved,absorbing)) 
-
-  # define interval of lattice points that can accommodate moved particles 
-  cellDiam= 2*paramDict["cellRad"] * 1.0 # to allow some wiggle room 
-  #s1 = np.array([(0,0), (0,1), (1,0), (1,1)])
-  daMax = paramDict["domainYDim"]/2 - 0.5*cellDiam 
-  #print(daMax)
-  ys = np.linspace(-daMax,daMax, int(2*daMax/cellDiam + 1)) 
-  trial = np.zeros([np.shape(ys)[0],2])
-  trial[:,0] = -paramDict["domainXDim"]/2 + 0.5*cellDiam
-  trial[:,1] = ys
-  #print(trial) 
-
-  # check distance between lattice points and existing cells 
-  #print(cdist(xys,trial))
-  v=cdist(xys,trial).min(axis=0)
-  #print(v) # distance to closest cell for each lattice pint
-  #print(distance.cdist(s1,s2).argmin(axis=0))
-  args = np.where(v > cellDiam)[0]
-  #print(args)
-  try:
-    z = random.sample(set(args), nMoved)
-  except:
-    raise RuntimeError("not enough room to accommodate particle") 
-  #print('z',z)
-  #print(trial[z])
-
-  # place edge particles on left 
-  #print('to move',moved) 
-  #print(xys)
-  xys[moved] = trial[z]                     
-  x[:nCells,0:2]=xys
-  #print(xys)
-  check = squareform(pdist(xys))
-  #print(check)
-  #print(check[moved[0]])
-
-  # update positions 
-  simulation.context.setPositions(x)                    
-  #print(i,np.min(xs),np.max(xs))
-
-  return nMoved
-def UpdateStates(csi,x,t,idxsCells,idxsA,idxsB,paramDict):      
-      """
-      find close contacts between cells and crowders 
-      this seems inefficient; seems like openmm should have something 
-      should package this into brown_util 
-
-      csi - CellSystem object
-      x - current coordinates
-      t - current time 
-      idxsCells - indices of cells
-      """
-      dists=pdist(x)
-      dists = squareform(dists)
-      daMax = np.max(dists)
-      #for i in range(10): # easy way to prevent self interction
-      #  dists[i,i]=daMax
-      # for debug
-      #dists = np.array(dists,int)
-      #print(dists)
-      closeA=bu.GetContacts(dists,idxsA,thresh=paramDict["contactDistCrowderA"])
-      closeB=bu.GetContacts(dists,idxsB,thresh=paramDict["contactDistCrowderB"])
-
-      # update contacts list in state object
-      #csi.UpdateContactsA( np.ones(nCells) )
-      #csi.UpdateContactsB( np.ones(nCells) )
-      csi.UpdateContactsA( closeA[idxsCells] )              
-      csi.UpdateContactsB( closeB[idxsCells] )              
-
-      # determine next state based
-      #csi.PrintStates()
-      csi.EvalTransitions(t)#,nCells,cs.stateMatrix)
-      #csi.PrintStates()
-      stateSums = csi.SumStates()
-
-      closeAs = np.sum(closeA[idxsCells])
-      closeBs = np.sum(closeB[idxsCells])
-
-      return stateSums,closeAs,closeBs
-
 
 
 
@@ -489,7 +390,7 @@ def runBD(
 
       # should only use when asymmetric distro is used 
       if paramDict["absorbingBoundary"]:
-        mvd = UpdateBoundary(simulation,paramDict,x,nCells)
+        mvd = up.UpdateBoundary(simulation,paramDict,x,nCells)
         movedParticles+=mvd
         # probably want to double check that velocities aren't reset 
         
@@ -498,7 +399,7 @@ def runBD(
       if (paramDict['states'] and (i % updateStates) == 0):
         t=i  # time/not sure what units/values to use yet ??????
         j = int(i/updateStates)
-        stateSum,closeA, closeB = UpdateStates(csi,x,t,idxsCells,idxsA,idxsB,paramDict)
+        stateSum,closeA, closeB = up.UpdateStates(csi,x,t,idxsCells,idxsA,idxsB,paramDict)
         closeAs[j] = closeA
         closeBs[j] = closeB
         stateSums.append(stateSum) 

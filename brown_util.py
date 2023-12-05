@@ -89,7 +89,7 @@ def CalcRDF(traj,
 
     return maxBin 
 
-def CalcProbDist(traj, mask='@RC',display=False):
+def CalcProbDist(traj, mask='@RC',display=False,caseName=None):
   """
   Computes probability distribution and potential of mean force 
   (via boltzmann inversion) 
@@ -111,25 +111,38 @@ def CalcProbDist(traj, mask='@RC',display=False):
   p,x,y= np.histogram2d(xs,ys,bins=bins,density=True)
   X, Y = np.meshgrid(x, y)
 
+  bins = 20
+  x1,bins1= np.histogram(xs,bins=bins)
+  x1 = x1/numFrames
+
   # get PMF
   p[p<thresh]=thresh
   pmf = -np.log(p) * kT 
   pmf-=np.min(pmf) 
 
 
+  if caseName is None:
+    caseName=""
+  else: 
+    caseName+="_"
+
   #display=True
   if display:
+    plt.figure()
+    plt.plot(bins1[:-1],x1)
+    plt.gcf().savefig(caseName+"prob1d.png",dpi=300)
+ 
     plt.figure()
     plt.axis('equal')
     plt.pcolormesh(X, Y, p.T) # probably T is appropriate here 
     plt.colorbar()
-    plt.gcf().savefig("prob.png",dpi=300)
+    plt.gcf().savefig(caseName+"prob2d.png",dpi=300)
 
     plt.figure()
     plt.axis('equal')
     plt.pcolormesh(X, Y, pmf.T) # probably T is appropriate here 
     plt.colorbar()
-    plt.gcf().savefig("pmf.png",dpi=300)
+    plt.gcf().savefig(caseName+"pmf.png",dpi=300)
 
   return p,X,Y
 
@@ -265,7 +278,7 @@ def CalcFlux(traj, mask='@RC',display=False,xThresh=0,margin=None):
     plt.title("XDisplacements(tf-t0)") 
     plt.hist(xdiffs)
     plt.gcf().savefig("diffs.png") 
-  print("Mean displacement",np.mean(xdiffs))
+    print("Mean displacement",np.mean(xdiffs))
   
 
 
@@ -300,7 +313,7 @@ def CalcFlux(traj, mask='@RC',display=False,xThresh=0,margin=None):
     #print(np.shape(z))
   xs = traj.xyz[:,indices,0]      
   zshifted = xs - xThresh  # values to the right of xThresh are positive; otherwise negative
-  #print(zshifted)
+  print("Flux using xThresh ",xThresh)
   
   # exclude those outside of margin 
   if margin is not None: 
