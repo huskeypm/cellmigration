@@ -1,7 +1,9 @@
 import numpy as np
+eps = 0.01
 def GenerateLattice(
         nLattice,
         nRow,
+        nCol=0,
         dims=[50,50],
         effDim=0.    # if positive value, will deduct this from dim so as to fit in cells (usually pass in cell diam)  
         #xThresh = None
@@ -11,16 +13,17 @@ def GenerateLattice(
   '''
 
   dimX,dimY = dims
-  nCol = nLattice / (nRow)
+  if nCol==0:
+    nCol = nLattice / (nRow)
   #print(nCol) 
   #nCol,nRow = 4,3
   #nLattice = nCol*nRow
   if nLattice == 1:
-      nCol,nRow = 1,1
+    nCol,nRow = 1,1
 
   if effDim>0:
-      dimX -=effDim 
-      dimY -=effDim 
+    dimX -=effDim 
+    dimY -=effDim 
 
 
   # ........######
@@ -31,9 +34,7 @@ def GenerateLattice(
   except:
     latticeSpaceX,latticeSpaceY = dims
 
-
-
-  
+  #print(nCol,nRow)
   xs = np.arange(nCol)
   ys = np.arange(nRow)
   #for i in range(nCols*nRows):
@@ -71,28 +72,39 @@ def GenerateLattice(
 def GenerateCrowderLattice(
   nCrowders,
   crowderRad=1.,
-  dim=20):
+  dims=[20,20]):
   """ 
   Places crowders on a regular lattice with symmetric dimensions 
   """
   print("Placing crowders") 
-  nRow = int( np.ceil( np.sqrt( nCrowders ) )  )
-  nLattice=nRow**2
+  #nRow = int( np.ceil( np.sqrt( nCrowders ) )  )
+  f = float(dims[1]/dims[0])  # h = f*w
+  nw = np.sqrt((1/f) * nCrowders)
+  nw = np.floor(nw)
+  nh = np.floor(nCrowders/nw)
+  nRow = int(nh)
+  nCol = int(nw)
+  #print(nRow,nCol)
+  #print(nCrowders)
+  nLattice=nRow*nCol
 
 
   #print(nRow,nLattice) 
   try: 
-    width=dim/(nRow-1)
+    width=dims[0]/(nCol-1)
+    height=dims[1]/(nRow-1)
   except:
     width=1e9
   diam = 2*crowderRad
 
-  if(diam>(width-0.01)):
+  #print(dims)
+  #print(diam, width, height,nRow,nCol)
+  if((width-diam)< eps  or (height-diam)< eps):
       raise RuntimeError("Crowders are too tightly placed; check crowderRad/crowderDomain")
 
-  dims = [dim,dim] # square 
+  #dims = [dim,dim] # square 
   #print(dims)
-  latticePts = GenerateLattice(nLattice,nRow,dims=dims,effDim=diam)
+  latticePts = GenerateLattice(nLattice,nRow,nCol=nCol,dims=dims,effDim=diam)
 
   return(latticePts)
 
@@ -116,7 +128,7 @@ def GenerateRandomLattice(
   if nCells > nLattice:
       raise RuntimeError("too many cells for lattice size") 
 
-  latticePts = GenerateLattice(nLattice,nRow,dims,effDim=(cellRad*2))
+  latticePts = GenerateLattice(nLattice,nRow,dims=dims,effDim=(cellRad*2))
 
   # only keep entries to the left of xThresh
   if xThresh is not None:
@@ -124,7 +136,7 @@ def GenerateRandomLattice(
     idx = np.where( xs <= xThresh)
     #print(np.shape(latticePts))
     latticePts = latticePts[idx[0],:]
-    print(np.shape(latticePts))
+    #print(np.shape(latticePts))
 
   nLattice = np.shape(latticePts)[0]
   if nCells > nLattice:
@@ -194,7 +206,7 @@ def GenerateCrowdedLattice(
     nCells,
     crowderRad=10.,
     cellRad=1.,
-    crowdedDim=30,
+    crowderDims=[30,30],
     outerDims = [50,50],
     xThresh = None        
 ):
@@ -207,7 +219,7 @@ def GenerateCrowdedLattice(
   crowderPos = GenerateCrowderLattice(
     nCrowders, 
     crowderRad = crowderRad,
-    dim=crowdedDim)
+    dims=crowderDims)
 
   allCoords = GenerateRandomLattice( 
     crowderPosns = crowderPos, # where crowder is located 

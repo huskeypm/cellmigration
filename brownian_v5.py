@@ -224,17 +224,19 @@ def runBD(
     crowderRad = paramDict['effectiveRad'] 
 
   outerDims=[paramDict["domainXDim"], paramDict["domainYDim"]]
+  crowderDims=[paramDict["crowderXDim"], paramDict["crowderYDim"]] # [um] dimensions of domain containing crowders (square)  
   crowderPos, cellPos = lattice.GenerateCrowdedLattice(
           nCrowders,nCells,
           crowderRad,paramDict['cellRad'],
-          crowdedDim=paramDict["crowderDim"], # [um] dimensions of domain containing crowders (square)  
+          crowderDims=crowderDims,
           outerDims=outerDims,
           xThresh=paramDict["xThresh"]
           )  # generate crowders
 
   newCrowderPos = np.shape(crowderPos)[0]
   if (newCrowderPos != nCrowders):
-    print("WARNING: increasing nCrowders to the nearest 'square-rootable' value: %d"
+    print("Not sure if i need this") 
+    raise RuntimeError("WARNING: increasing nCrowders to the nearest 'square-rootable' value: %d"
             %newCrowderPos)
     nCrowders = newCrowderPos 
 

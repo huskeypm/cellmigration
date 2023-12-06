@@ -107,8 +107,9 @@ def CalcProbDist(traj, mask='@RC',display=False,caseName=None):
   ys = traj.xyz[0:,indices,1]
   ys = np.ndarray.flatten(ys)  # n particles x m timesteps 
 
-  print("NEED TO READ FROM PARAM FILE") 
+  print("WARNING: NEED TO READ FROM PARAM FILE") 
   bins = 8*np.array([175,55])   # need this to be based on paramDict
+  bins = 8*np.array([175,100])   # need this to be based on paramDict
   p,x,y= np.histogram2d(xs,ys,bins=bins,density=True)
   dx=x[1]-x[0]
   dy=y[1]-y[0]
