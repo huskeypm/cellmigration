@@ -30,6 +30,7 @@ equilFrame = 0
 FRAME_CONV = 0.1 # min/fr 
 dt = FRAME_CONV  # [min] 
 
+crowderDim = 50 
 
 
 def ProcessTraj(caseName,display=False): 
@@ -47,13 +48,21 @@ def ProcessTraj(caseName,display=False):
     Di=bu.CalcD(traj,mask='@RC',csvName=caseName)                        
     xThresh = 300 # AA
     xThresh = 600 # AA
-    JA=bu.CalcFlux(traj,mask='@RC',display=display,xThresh=xThresh,caseName=caseName)
-    print("Di %f J %f"%(Di,JA))
+    #JA=bu.CalcFlux(traj,mask='@RC',display=display,xThresh=xThresh)
+    #print("Di %f J %f"%(Di,JA))
 
     # get 2D histogram of populations
-    bu.CalcProbDist(traj,mask='@RC',caseName=caseName,display=display)
+    prob,d,d,dx,dy = bu.CalcProbDist(traj,mask='@RC',caseName=caseName,display=display)
 
-    return Di,JA 
+    print("WARNING: crowederDim is hard-coded") 
+    areaFrac,J =  bu.CalcAverageFlux(
+      prob,
+      D=1,
+      xlims = [50,65], 
+      dx = dx,
+      dy=dy )
+
+    return Di,J 
 
 ##
 ## MAIN 

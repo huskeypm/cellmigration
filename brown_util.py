@@ -109,6 +109,8 @@ def CalcProbDist(traj, mask='@RC',display=False,caseName=None):
 
   bins = 100
   p,x,y= np.histogram2d(xs,ys,bins=bins,density=True)
+  dx=x[1]-x[0]
+  dy=y[1]-y[0]
   X, Y = np.meshgrid(x, y)
 
   bins = 20
@@ -145,7 +147,7 @@ def CalcProbDist(traj, mask='@RC',display=False,caseName=None):
     plt.colorbar()
     plt.gcf().savefig(caseName+"pmf.png",dpi=300)
 
-  return p,X,Y
+  return p,X,Y,dx,dy
 
 def meanSquareDisplacements(xs, ys, nUpdates):
     x0s = xs[:,0]
@@ -251,6 +253,66 @@ def CalcD(traj,mask='@RC',csvName=None, display=False):
   return Di 
 
 # assumes cylindrical inclusions 
+
+# J = D * grad(c)
+# derivative in x direction 
+#diff = np.abs( np.diff(data2,axis=0) ) # to check that zeroing out works 
+def CalcAverageFlux(
+    dataSet,
+    D=1,
+    xlims = [50,60], 
+    dx = 1,
+    dy=1 ):# need to relate px to nm
+    """
+    Calculates flux over region in order to get average values 
+    dataSet -  # concentration/probability
+    D - diffusion coefficient
+    xlims - range in x over which to evaluate D 
+    dx,dy - resolution in nm per px 
+    """
+    #data2 = np.outer(-np.arange(100),np.ones(100))
+    #plt.pcolormesh(data2.T)
+
+
+    # make mask
+    mask = np.ones_like(dataSet)
+    print("Need a better way of doing this")
+    mask[dataSet < 1e-7]= 0
+    mask=mask[1:,:] #trim first row to match with diff later
+    plt.pcolormesh(mask.T) # may be zero if no occlusions 
+
+    Dgradc = D*np.diff(dataSet,axis=0) 
+
+    # make out low sampled area (occlusions)
+    #print(np.mean(diff))
+    J=Dgradc*mask
+
+    display=True 
+    if display:
+      plt.pcolormesh((J).T)
+      plt.gcf().savefig("avgflux.png",dpi=300)
+
+
+    # get subregion containing the occlusions 
+    plt.figure()
+    subJ =J[xlims[0]:xlims[1],:]
+    submask =mask[xlims[0]:xlims[1],:]
+
+    nx,ny = np.shape(submask)
+    #plt.pcolormesh((submask).T)
+    #plt.pcolormesh((subJ).T)
+    JSum = np.sum(subJ)*dx*dy  # J = D * grad(c)
+    areaSum = np.sum(submask)*dx*dy
+    areaTot = (dx*nx)*(dy*ny)
+    #print(nx*ny)
+    Javg = JSum/areaTot
+    areaFrac = areaSum/areaTot
+    #print(Javg,areaFrac)
+    
+    return areaFrac,Javg
+
+
+
 
 
 ## get flux
