@@ -107,7 +107,8 @@ def CalcProbDist(traj, mask='@RC',display=False,caseName=None):
   ys = traj.xyz[0:,indices,1]
   ys = np.ndarray.flatten(ys)  # n particles x m timesteps 
 
-  bins = 100
+  print("NEED TO READ FROM PARAM FILE") 
+  bins = 8*np.array([175,55])   # need this to be based on paramDict
   p,x,y= np.histogram2d(xs,ys,bins=bins,density=True)
   dx=x[1]-x[0]
   dy=y[1]-y[0]
@@ -279,7 +280,7 @@ def CalcAverageFlux(
     print("Need a better way of doing this")
     mask[dataSet < 1e-7]= 0
     mask=mask[1:,:] #trim first row to match with diff later
-    plt.pcolormesh(mask.T) # may be zero if no occlusions 
+    #plt.pcolormesh(mask.T) # may be zero if no occlusions 
 
     Dgradc = D*np.diff(dataSet,axis=0) 
 
@@ -289,12 +290,12 @@ def CalcAverageFlux(
 
     display=True 
     if display:
+      plt.figure()
       plt.pcolormesh((J).T)
       plt.gcf().savefig("avgflux.png",dpi=300)
 
 
     # get subregion containing the occlusions 
-    plt.figure()
     subJ =J[xlims[0]:xlims[1],:]
     submask =mask[xlims[0]:xlims[1],:]
 
@@ -307,7 +308,7 @@ def CalcAverageFlux(
     #print(nx*ny)
     Javg = JSum/areaTot
     areaFrac = areaSum/areaTot
-    #print(Javg,areaFrac)
+    print(Javg,areaFrac)
     
     return areaFrac,Javg
 

@@ -3,11 +3,12 @@ import numpy as np
 #from numpy import random
 import random 
 from scipy.spatial.distance import cdist, pdist, squareform 
-def UpdateBoundary(simulation,paramDict,x,nCells):
+def UpdateBoundary(simulation,paramDict,x,nCells,warning=False):
   """
   Apply absorbing bounadary on right hand side. Deletes particles on right; move them to left
   x - current atom positions
   nCells
+  warning   - if True, will dioe if can't place particle 
   """
   # find things near other boundary 
   xys = x[:nCells,0:2]
@@ -45,7 +46,11 @@ def UpdateBoundary(simulation,paramDict,x,nCells):
     print(xys)
     print(trial) 
     print(v) 
-    raise RuntimeError("not enough room to accommodate particle (%d)"%nMoved) 
+    message = "not enough room to accommodate particle (%d)"%nMoved
+    if warning: 
+      print(message, " will try again") 
+    else: 
+      raise RuntimeError(message)
   #print('z',z)
   #print(trial[z])
 

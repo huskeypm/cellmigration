@@ -37,6 +37,7 @@ def ProcessTraj(caseName,display=False):
     # LoadTraj
     caseName = caseName.replace('.yaml',"")
     traj = bu.LoadTraj(caseName)
+    traj._force_load =  True
 
     #, get RDF
     bu.CalcRDFs(traj,"RC","AC")
@@ -58,7 +59,7 @@ def ProcessTraj(caseName,display=False):
     areaFrac,J =  bu.CalcAverageFlux(
       prob,
       D=1,
-      xlims = [50,65], 
+      xlims = [88,114], 
       dx = dx,
       dy=dy )
 

@@ -390,8 +390,11 @@ def runBD(
 
       # should only use when asymmetric distro is used 
       if paramDict["absorbingBoundary"]:
-        mvd = up.UpdateBoundary(simulation,paramDict,x,nCells)
-        movedParticles+=mvd
+        # evaluate every 10 updates 
+        if(i % 10)== 0: 
+          #print("eval ",i)
+          mvd = up.UpdateBoundary(simulation,paramDict,x,nCells,warning=True)
+          movedParticles+=mvd
         # probably want to double check that velocities aren't reset 
         
 
