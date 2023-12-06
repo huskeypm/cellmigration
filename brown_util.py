@@ -285,7 +285,11 @@ def CalcAverageFlux(
     # make out low sampled area (occlusions)
     #print(np.mean(diff))
     J=Dgradc*mask
-    plt.pcolormesh((J).T)
+
+    display=True 
+    if display:
+      plt.pcolormesh((J).T)
+      plt.gcf().savefig("avgflux.png",dpi=300)
 
 
     # get subregion containing the occlusions 
@@ -295,7 +299,7 @@ def CalcAverageFlux(
 
     nx,ny = np.shape(submask)
     #plt.pcolormesh((submask).T)
-    plt.pcolormesh((subJ).T)
+    #plt.pcolormesh((subJ).T)
     JSum = np.sum(subJ)*dx*dy  # J = D * grad(c)
     areaSum = np.sum(submask)*dx*dy
     areaTot = (dx*nx)*(dy*ny)
