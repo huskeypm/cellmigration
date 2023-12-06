@@ -135,6 +135,7 @@ def CalcProbDist(traj, mask='@RC',display=False,caseName=None):
     plt.figure()
     plt.axis('equal')
     plt.pcolormesh(X, Y, p.T) # probably T is appropriate here 
+    np.savetxt(caseName+"prob.csv",p) 
     plt.colorbar()
     plt.gcf().savefig(caseName+"prob2d.png",dpi=300)
 
@@ -253,7 +254,7 @@ def CalcD(traj,mask='@RC',csvName=None, display=False):
 
 
 ## get flux
-def CalcFlux(traj, mask='@RC',display=False,xThresh=0,margin=None): 
+def CalcFlux(traj, mask='@RC',display=False,xThresh=0,margin=None,caseName=None): 
   """
   Gets particle flux across xThresh (0 for now) 
   for each particle, get dx in all directions, provide dt as input
@@ -358,9 +359,11 @@ def CalcFlux(traj, mask='@RC',display=False,xThresh=0,margin=None):
   #y = traj.xyz[:,indices,1]
   #plt.plot(x,y)
   #plt.gcf().savefig("testxy.png") 
+  if caseName is None:
+    caseName=""
   if display:
     plt.figure()
-    print("Flux",l[0],l[-1],cummean[-1] )
+    print("Flux %8f"%cummean[-1] )
     axl = plt.subplot(111)
     #axl.plot(fluxArea,label="flux*area")
     axl.plot(timeSoFar[100:],cummean[100:],label="flux*area")
@@ -370,7 +373,7 @@ def CalcFlux(traj, mask='@RC',display=False,xThresh=0,margin=None):
     axr.set_ylim(0,np.max(l)+1)
     axl.legend(loc=1)
     axr.legend(loc=2)
-    plt.gcf().savefig("flux.png",dpi=600) 
+    plt.gcf().savefig(caseName+"flux.png",dpi=600) 
 
   return JA         
 
