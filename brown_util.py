@@ -259,42 +259,73 @@ def CalcD(traj,mask='@RC',csvName=None, display=False):
 # J = D * grad(c)
 # derivative in x direction 
 #diff = np.abs( np.diff(data2,axis=0) ) # to check that zeroing out works 
+from scipy.ndimage import gaussian_filter
+from scipy.stats import linregress
 def CalcAverageFlux(
     dataSet,
     D=1,
-    xlims = [50,60], 
-    dx = 1,
-    dy=1 ):# need to relate px to nm
+    xlims = [50,60],
+    dx = 0.125,
+    dy=  0.125,
+    display=True):# need to relate px to nm
     """
-    Calculates flux over region in order to get average values 
+    Calculates flux over region in order to get average values. Considers both crowder location and left reservoir
     dataSet -  # concentration/probability
     D - diffusion coefficient
-    xlims - range in x over which to evaluate D 
-    dx,dy - resolution in nm per px 
+    xlims - range in x over which to evaluate D in crowded region
+    dx,dy - resolution in nm per px (currently 1400 px wide for 350 nm domain)
     """
     #data2 = np.outer(-np.arange(100),np.ones(100))
     #plt.pcolormesh(data2.T)
 
-
     # make mask
     mask = np.ones_like(dataSet)
-    print("Need a better way of doing this")
-    mask[dataSet < 1e-7]= 0
+    avgDataSet = np.mean(dataSet)
+    dataSetCp = np.copy(dataSet)
+    #print('data set avg', avgDataSet)
+    cutoff = 0.3*avgDataSet
+    mask[dataSetCp < cutoff ]= 0   # 
+    insideMean = np.mean(dataSetCp[dataSetCp < cutoff ]) # mean inside inclusion 
+    outsideMean = np.mean(dataSetCp[dataSetCp >= cutoff ]) # mean outside inclusion
+    
+    cutoff = 0.1*avgDataSet
+    dataSetCp[dataSetCp < cutoff]= outsideMean   # we apply a more stringent criterion here so that we don't 'zero' out as much of the crowder-->smoother gradients
+    
     mask=mask[1:,:] #trim first row to match with diff later
+    
     #plt.pcolormesh(mask.T) # may be zero if no occlusions 
-
-    Dgradc = D*np.diff(dataSet,axis=0) 
+    if display:
+      plt.figure()
+      fig, axs = plt.subplots(1)
+      axs.pcolormesh(mask.T) #. mask[xlims[0]:xlims[1]].T)
+      axs.set_aspect('equal')       
+      axs.set_title("mask")
+    
+    # smoothing 
+    
+    #dataSetCp = gaussian_filter(dataSetCp, sigma=3)
+    Dgradc = D*np.diff(dataSetCp,axis=0)  # do verify yhis is the right direction 
 
     # make out low sampled area (occlusions)
     #print(np.mean(diff))
     J=Dgradc*mask
+    #plt.hist(J)
 
-    display=True 
+    #display=True
     if display:
       plt.figure()
-      plt.pcolormesh((J).T)
-      plt.gcf().savefig("avgflux.png",dpi=300)
+      fig, axs = plt.subplots(1)
+      axs.pcolormesh(dataSetCp[xlims[0]:xlims[1]].T)
+      axs.set_aspect('equal')       
+      axs.set_title("modified c")
 
+      plt.figure()
+      fig, axs = plt.subplots(1)
+      axs.pcolormesh(J[xlims[0]:xlims[1]].T)
+      axs.set_aspect('equal')       
+      axs.set_title("masked J")
+      plt.gcf().savefig("avgflux.png",dpi=1200)
+    
 
     # get subregion containing the occlusions 
     subJ =J[xlims[0]:xlims[1],:]
@@ -307,18 +338,44 @@ def CalcAverageFlux(
     areaSum = np.sum(submask)*dx*dy
     areaTot = (dx*nx)*(dy*ny)
     #print(nx*ny)
-    Javg = JSum/areaTot
+    JavgCrowded = JSum/areaTot
     areaFrac = areaSum/areaTot
-    print(Javg,areaFrac)
+    #print(areaFrac,Javg)
     
-    return areaFrac,Javg
+    # try part before crowders too
+    subset=dataSetCp #[:,50:350]
+    dasum = np.sum(subset,axis=1)
+    dasum = gaussian_filter(dasum, sigma=3)    
+    if display:
+        plt.figure()
+        fig, axs = plt.subplots(1)
+        #subset=Dgradc   # [100:500,50:350]
+        axs.pcolormesh(subset.T,cmap='gray')
+        plt.figure()
 
+        plt.plot(dasum)
+    
+    # look in first 1/4 of plot to find max     
+    daMax = np.argmax(dasum[0:xlims[0]])
+    lims=[daMax,xlims[0]]
+    x = np.linspace(lims[0],lims[1],lims[1]-lims[0])
+    y = dasum[lims[0]:lims[1]]
+    result = linregress(x, y)
+    JavgReservoir=result.slope
+    
+    print("JavgR ",JavgReservoir," JavgCrowd ", JavgCrowded, " areafrac ", areaFrac)
+    
+    if display:
+        plt.plot(x, x*result.slope + result.intercept)
+    
+    
+    return areaFrac,JavgCrowded, JavgReservoir
 
 
 
 
 ## get flux
-def CalcFlux(traj, mask='@RC',display=False,xThresh=0,margin=None,caseName=None): 
+def CalcFluxLine(traj, mask='@RC',display=False,xThresh=0,margin=None,caseName=None): 
   """
   Gets particle flux across xThresh (0 for now) 
   for each particle, get dx in all directions, provide dt as input

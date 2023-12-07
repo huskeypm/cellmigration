@@ -1,5 +1,5 @@
 import numpy as np
-eps = 0.01
+eps = 0.00   # this is used for checking sphere clashes; the effective radii are smaller than the vdw, so using zero here to allow for wiggle room
 def GenerateLattice(
         nLattice,
         nRow,
@@ -100,6 +100,7 @@ def GenerateCrowderLattice(
   #print(dims)
   #print(diam, width, height,nRow,nCol)
   if((width-diam)< eps  or (height-diam)< eps):
+      print(diam,width,height,"d w h") 
       raise RuntimeError("Crowders are too tightly placed; check crowderRad/crowderDomain")
 
   #dims = [dim,dim] # square 

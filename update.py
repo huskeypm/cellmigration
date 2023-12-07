@@ -49,6 +49,7 @@ def UpdateBoundary(simulation,paramDict,x,nCells,warning=False):
     message = "not enough room to accommodate particle (%d)"%nMoved
     if warning: 
       print(message, " will try again later") 
+      return 0 
     else: 
       raise RuntimeError(message)
   #print('z',z)
