@@ -89,7 +89,8 @@ def CalcRDF(traj,
 
     return maxBin 
 
-def CalcProbDist(traj, mask='@RC',display=False,caseName=None):
+def CalcProbDist(
+  traj, mask='@RC',display=False,caseName=None,bins=None,tMax=-1):
   """
   Computes probability distribution and potential of mean force 
   (via boltzmann inversion) 
@@ -102,22 +103,20 @@ def CalcProbDist(traj, mask='@RC',display=False,caseName=None):
   ## get cells
   indices = pt.select_atoms(traj.top, mask)
 
-  xs = traj.xyz[0:,indices,0]
+  xs = traj.xyz[0:tMax,indices,0]
   xs = np.ndarray.flatten(xs)  # n particles x m timesteps 
-  ys = traj.xyz[0:,indices,1]
+  ys = traj.xyz[0:tMax,indices,1]
   ys = np.ndarray.flatten(ys)  # n particles x m timesteps 
 
-  print("WARNING: NEED TO READ FROM PARAM FILE") 
-  bins = 8*np.array([175,55])   # need this to be based on paramDict
-  bins = 8*np.array([175,100])   # need this to be based on paramDict
-  p,x,y= np.histogram2d(xs,ys,bins=bins,density=True)
+  if bins is not None:
+    p,x,y= np.histogram2d(xs,ys,bins=bins,density=True)
+  else:
+    p,x,y= np.histogram2d(xs,ys,density=True)
+  np.savetxt(caseName+"prob.csv",p) 
+
   dx=x[1]-x[0]
   dy=y[1]-y[0]
   X, Y = np.meshgrid(x, y)
-
-  bins = 20
-  x1,bins1= np.histogram(xs,bins=bins)
-  x1 = x1/numFrames
 
   # get PMF
   p[p<thresh]=thresh
@@ -133,13 +132,8 @@ def CalcProbDist(traj, mask='@RC',display=False,caseName=None):
   #display=True
   if display:
     plt.figure()
-    plt.plot(bins1[:-1],x1)
-    plt.gcf().savefig(caseName+"prob1d.png",dpi=300)
- 
-    plt.figure()
     plt.axis('equal')
     plt.pcolormesh(X, Y, p.T) # probably T is appropriate here 
-    np.savetxt(caseName+"prob.csv",p) 
     plt.colorbar()
     plt.gcf().savefig(caseName+"prob2d.png",dpi=300)
 

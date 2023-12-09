@@ -33,7 +33,7 @@ dt = FRAME_CONV  # [min]
 crowderDim = 50 
 
 
-def ProcessTraj(caseName,display=False): 
+def ProcessTraj(caseName,display=False,auxParams=None): 
     # LoadTraj
     caseName = caseName.replace('.yaml',"")
     traj = bu.LoadTraj(caseName)
@@ -47,23 +47,56 @@ def ProcessTraj(caseName,display=False):
 #
     ## get J,D    
     Di=bu.CalcD(traj,mask='@RC',csvName=caseName)                        
-    xThresh = 300 # AA
-    xThresh = 600 # AA
-    #JA=bu.CalcFlux(traj,mask='@RC',display=display,xThresh=xThresh)
+    #xThresh = 300 # AA
+    #xThresh = 600 # AA
+    #JA=bu.CalcFluxLine(traj,mask='@RC',display=display,xThresh=xThresh)
     #print("Di %f J %f"%(Di,JA))
 
     # get 2D histogram of populations
-    prob,d,d,dx,dy = bu.CalcProbDist(traj,mask='@RC',caseName=caseName,display=display)
+    resolution = 4 
+    if auxParams is not None:
+      dimx = auxParams['domainXDim']*2 # since +/- domainXDim
+      dimy = auxParams['domainYDim']*2 # since +/- domainXDim
+      dims = resolution * np.array([dimx,dimy])
+      midx = int( dims[0]/2 ) 
 
-    print("WARNING: crowederDim is hard-coded") 
-    areaFrac,J =  bu.CalcAverageFlux(
+      #reservoirGap = auxParams['domainXDim'] - auxParams['crowderXDim']
+      crowderDims=[midx - auxParams['crowderXDim']*resolution,
+                   midx + auxParams['crowderXDim']*resolution]
+      print("x=",dims) 
+      print(crowderDims)
+
+    else:
+      dims = None 
+      crowderDims = None 
+    print("DEBUGGING") 
+    dummy = bu.CalcProbDist(traj,mask='@RC',
+                tMax=1000000, caseName=caseName+"_1M",
+		display=False,bins=dims)
+    dummy = bu.CalcProbDist(traj,mask='@RC',
+                tMax=3000000, caseName=caseName+"_3M",
+		display=False,bins=dims)
+    print("RENAME MISNOMER bins/dims")
+    print("DYING IGNOBLY") 
+    quit()
+    prob,d,d,dx,dy = bu.CalcProbDist(traj,mask='@RC',caseName=caseName,display=display,bins=dims)
+
+    #print("WARNING: crowederDim is hard-coded") 
+    #xLimCrowder=[500,1000]
+    areaFrac,Jcrowd,Jreserv =  bu.CalcAverageFlux(
       prob,
       D=1,
-      xlims = [88,114], 
+      xlims = crowderDims,
       dx = dx,
       dy=dy )
 
-    return Di,J 
+    return Di,Jreserv 
+
+def GetParams(yamlName):
+  with open(yamlName, 'r') as file:                                
+    auxParams = yaml.safe_load(file)
+
+  return auxParams 
 
 ##
 ## MAIN 
@@ -106,9 +139,8 @@ def processYamls(figName,
   for yamlName in yamlNames:
       # open yaml
       #yamlName = path+"/"+yamlName
-      with open(yamlName, 'r') as file:                                
-        auxParams = yaml.safe_load(file)
       # get output name 
+      auxParams = GetParams(yamlName) 
       trajName = auxParams['outName']                   
       #print(trajName) 
 
@@ -131,7 +163,7 @@ def processYamls(figName,
         skipped.append(trajName)
         continue 
       
-      Di,JA = ProcessTraj(trajName,display=display) 
+      Di,JA = ProcessTraj(trajName,display=display,auxParams=auxParams) 
   
       # add to dataframe 
       df.loc[len(df.index)] = [trajName, tag, condVal,Di,JA,volFrac]
@@ -197,7 +229,8 @@ if __name__ == "__main__":
     elif(arg=="-single"): 
       yamlName=sys.argv[i+1]#
       #Di,JA = processYamls("test.png",yamlName,single =True,display=True)
-      Di,JA = ProcessTraj(yamlName,display=True)
+      auxParams = GetParams(yamlName) 
+      Di,JA = ProcessTraj(yamlName,display=True,auxParams=auxParams)
       quit()
 
     elif(arg=="-all"): 
