@@ -75,7 +75,10 @@ def WriteIterativeYaml(auxParams,daKey,varIter=3,varRuns=2,writeFile=None):
   #print('path',params.path,'exec',params.cmd) 
 
   dflt = auxParams[daKey] 
-  vals = RescaleValues(dflt,nIter=varIter,key=daKey) 
+  if np.isscalar(varIter):
+    vals = RescaleValues(dflt,nIter=varIter,key=daKey) 
+  else:
+    vals  = varIter 
 
   # range of vals
   cmds = []
