@@ -89,7 +89,8 @@ def CalcRDF(traj,
 
     return maxBin 
 
-def CalcProbDist(traj, mask='@RC',display=False):
+def CalcProbDist(
+  traj, mask='@RC',display=False,caseName=None,bins=None,tMax=-1):
   """
   Computes probability distribution and potential of mean force 
   (via boltzmann inversion) 
@@ -102,13 +103,19 @@ def CalcProbDist(traj, mask='@RC',display=False):
   ## get cells
   indices = pt.select_atoms(traj.top, mask)
 
-  xs = traj.xyz[0:,indices,0]
+  xs = traj.xyz[0:tMax,indices,0]
   xs = np.ndarray.flatten(xs)  # n particles x m timesteps 
-  ys = traj.xyz[0:,indices,1]
+  ys = traj.xyz[0:tMax,indices,1]
   ys = np.ndarray.flatten(ys)  # n particles x m timesteps 
 
-  bins = 100
-  p,x,y= np.histogram2d(xs,ys,bins=bins,density=True)
+  if bins is not None:
+    p,x,y= np.histogram2d(xs,ys,bins=bins,density=True)
+  else:
+    p,x,y= np.histogram2d(xs,ys,density=True)
+  np.savetxt(caseName+"prob.csv",p) 
+
+  dx=x[1]-x[0]
+  dy=y[1]-y[0]
   X, Y = np.meshgrid(x, y)
 
   # get PMF
@@ -117,21 +124,26 @@ def CalcProbDist(traj, mask='@RC',display=False):
   pmf-=np.min(pmf) 
 
 
+  if caseName is None:
+    caseName=""
+  else: 
+    caseName+="_"
+
   #display=True
   if display:
     plt.figure()
     plt.axis('equal')
     plt.pcolormesh(X, Y, p.T) # probably T is appropriate here 
     plt.colorbar()
-    plt.gcf().savefig("prob.png",dpi=300)
+    plt.gcf().savefig(caseName+"prob2d.png",dpi=300)
 
     plt.figure()
     plt.axis('equal')
     plt.pcolormesh(X, Y, pmf.T) # probably T is appropriate here 
     plt.colorbar()
-    plt.gcf().savefig("pmf.png",dpi=300)
+    plt.gcf().savefig(caseName+"pmf.png",dpi=300)
 
-  return p,X,Y
+  return p,X,Y,dx,dy
 
 def meanSquareDisplacements(xs, ys, nUpdates):
     x0s = xs[:,0]
@@ -238,9 +250,126 @@ def CalcD(traj,mask='@RC',csvName=None, display=False):
 
 # assumes cylindrical inclusions 
 
+# J = D * grad(c)
+# derivative in x direction 
+#diff = np.abs( np.diff(data2,axis=0) ) # to check that zeroing out works 
+from scipy.ndimage import gaussian_filter
+from scipy.stats import linregress
+def CalcAverageFlux(
+    dataSet,
+    D=1,
+    xlims = [50,60],
+    dx = 0.125,
+    dy=  0.125,
+    display=True):# need to relate px to nm
+    """
+    Calculates flux over region in order to get average values. Considers both crowder location and left reservoir
+    dataSet -  # concentration/probability
+    D - diffusion coefficient
+    xlims - range in x over which to evaluate D in crowded region
+    dx,dy - resolution in nm per px (currently 1400 px wide for 350 nm domain)
+    """
+    #data2 = np.outer(-np.arange(100),np.ones(100))
+    #plt.pcolormesh(data2.T)
+
+    # make mask
+    mask = np.ones_like(dataSet)
+    avgDataSet = np.mean(dataSet)
+    dataSetCp = np.copy(dataSet)
+    #print('data set avg', avgDataSet)
+    cutoff = 0.3*avgDataSet
+    mask[dataSetCp < cutoff ]= 0   # 
+    insideMean = np.mean(dataSetCp[dataSetCp < cutoff ]) # mean inside inclusion 
+    outsideMean = np.mean(dataSetCp[dataSetCp >= cutoff ]) # mean outside inclusion
+    
+    cutoff = 0.1*avgDataSet
+    dataSetCp[dataSetCp < cutoff]= outsideMean   # we apply a more stringent criterion here so that we don't 'zero' out as much of the crowder-->smoother gradients
+    
+    mask=mask[1:,:] #trim first row to match with diff later
+    
+    #plt.pcolormesh(mask.T) # may be zero if no occlusions 
+    if display:
+      plt.figure()
+      fig, axs = plt.subplots(1)
+      axs.pcolormesh(mask.T) #. mask[xlims[0]:xlims[1]].T)
+      axs.set_aspect('equal')       
+      axs.set_title("mask")
+    
+    # smoothing 
+    
+    #dataSetCp = gaussian_filter(dataSetCp, sigma=3)
+    Dgradc = D*np.diff(dataSetCp,axis=0)  # do verify yhis is the right direction 
+
+    # make out low sampled area (occlusions)
+    #print(np.mean(diff))
+    J=Dgradc*mask
+    #plt.hist(J)
+
+    #display=True
+    if display:
+      plt.figure()
+      fig, axs = plt.subplots(1)
+      axs.pcolormesh(dataSetCp[xlims[0]:xlims[1]].T)
+      axs.set_aspect('equal')       
+      axs.set_title("modified c")
+
+      plt.figure()
+      fig, axs = plt.subplots(1)
+      axs.pcolormesh(J[xlims[0]:xlims[1]].T)
+      axs.set_aspect('equal')       
+      axs.set_title("masked J")
+      plt.gcf().savefig("avgflux.png",dpi=1200)
+    
+
+    # get subregion containing the occlusions 
+    subJ =J[xlims[0]:xlims[1],:]
+    submask =mask[xlims[0]:xlims[1],:]
+
+    nx,ny = np.shape(submask)
+    #plt.pcolormesh((submask).T)
+    #plt.pcolormesh((subJ).T)
+    JSum = np.sum(subJ)*dx*dy  # J = D * grad(c)
+    areaSum = np.sum(submask)*dx*dy
+    areaTot = (dx*nx)*(dy*ny)
+    #print(nx*ny)
+    JavgCrowded = JSum/areaTot
+    areaFrac = areaSum/areaTot
+    #print(areaFrac,Javg)
+    
+    # try part before crowders too
+    subset=dataSetCp #[:,50:350]
+    dasum = np.sum(subset,axis=1)
+    dasum = gaussian_filter(dasum, sigma=3)    
+    if display:
+        plt.figure()
+        fig, axs = plt.subplots(1)
+        #subset=Dgradc   # [100:500,50:350]
+        axs.pcolormesh(subset.T,cmap='gray')
+        plt.figure()
+
+        plt.plot(dasum)
+    
+    # look in first 1/4 of plot to find max     
+    daMax = np.argmax(dasum[0:xlims[0]])
+    lims=[daMax,xlims[0]]
+    x = np.linspace(lims[0],lims[1],lims[1]-lims[0])
+    y = dasum[lims[0]:lims[1]]
+    result = linregress(x, y)
+    JavgReservoir=result.slope
+    
+    print("JavgR ",JavgReservoir," JavgCrowd ", JavgCrowded, " areafrac ", areaFrac)
+    
+    if display:
+        plt.plot(x, x*result.slope + result.intercept)
+    
+    
+    return areaFrac,JavgCrowded, JavgReservoir
+
+
+
 
 ## get flux
-def CalcFlux(traj, mask='@RC',display=False,xThresh=0,margin=None): 
+def CalcFluxLine(traj, mask='@RC',display=False,xThresh=0,margin=None,caseName=None): 
   """
   Gets particle flux across xThresh (0 for now) 
   for each particle, get dx in all directions, provide dt as input
@@ -265,7 +394,7 @@ def CalcFlux(traj, mask='@RC',display=False,xThresh=0,margin=None):
     plt.title("XDisplacements(tf-t0)") 
     plt.hist(xdiffs)
     plt.gcf().savefig("diffs.png") 
-  print("Mean displacement",np.mean(xdiffs))
+    print("Mean displacement",np.mean(xdiffs))
   
 
 
@@ -300,7 +429,7 @@ def CalcFlux(traj, mask='@RC',display=False,xThresh=0,margin=None):
     #print(np.shape(z))
   xs = traj.xyz[:,indices,0]      
   zshifted = xs - xThresh  # values to the right of xThresh are positive; otherwise negative
-  #print(zshifted)
+  print("Flux using xThresh ",xThresh)
   
   # exclude those outside of margin 
   if margin is not None: 
@@ -345,9 +474,11 @@ def CalcFlux(traj, mask='@RC',display=False,xThresh=0,margin=None):
   #y = traj.xyz[:,indices,1]
   #plt.plot(x,y)
   #plt.gcf().savefig("testxy.png") 
+  if caseName is None:
+    caseName=""
   if display:
     plt.figure()
-    print("Flux",l[0],l[-1],cummean[-1] )
+    print("Flux %8f"%cummean[-1] )
     axl = plt.subplot(111)
     #axl.plot(fluxArea,label="flux*area")
     axl.plot(timeSoFar[100:],cummean[100:],label="flux*area")
@@ -357,7 +488,7 @@ def CalcFlux(traj, mask='@RC',display=False,xThresh=0,margin=None):
     axr.set_ylim(0,np.max(l)+1)
     axl.legend(loc=1)
     axr.legend(loc=2)
-    plt.gcf().savefig("flux.png",dpi=600) 
+    plt.gcf().savefig(caseName+"flux.png",dpi=600) 
 
   return JA         
 

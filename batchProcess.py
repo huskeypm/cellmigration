@@ -13,6 +13,9 @@ import glob
 # insert and load the names of the pdb/dcd files that you made using the yamlFile to change the parameters
 # calculate the mean square displacements for each pkl file
 # plot the simulated trajectories of the particles
+##
+## MAIN 
+## 
 
 cases=dict()
 class empty:pass
@@ -30,43 +33,86 @@ equilFrame = 0
 FRAME_CONV = 0.1 # min/fr 
 dt = FRAME_CONV  # [min] 
 
+crowderDim = 50 
 
 
-def ProcessTraj(caseName,display=False): 
-    # LoadTraj
-    caseName = caseName.replace('.yaml',"")
-    traj = bu.LoadTraj(caseName)
+def ProcessTraj(caseName,display=False,auxParams=None): 
+ # LoadTraj
+ caseName = caseName.replace('.yaml',"")
+ traj = bu.LoadTraj(caseName)
+ traj._force_load =  True
 
-    #, get RDF
-    bu.CalcRDFs(traj,"RC","AC")
+ #, get RDF
+ bu.CalcRDFs(traj,"RC","AC")
     #mask1='@RC'
     #mask2=':21@AC'# last atom (crowder) 
     #bu.CalcRDF(traj,mask1=mask1,mask2=mask2)  
 #
-    ## get J,D    
-    Di=bu.CalcD(traj,mask='@RC',csvName=caseName)                        
-    JA=bu.CalcFlux(traj,mask='@RC',display=display)
-    print("Di %f J %f"%(Di,JA))
+ ## get J,D    
+ Di=bu.CalcD(traj,mask='@RC',csvName=caseName)                        
+ #xThresh = 300 # AA
+ #xThresh = 600 # AA
+ #JA=bu.CalcFluxLine(traj,mask='@RC',display=display,xThresh=xThresh)
+ #print("Di %f J %f"%(Di,JA))
 
-    # get 2D histogram of populations
-    bu.CalcProbDist(traj,mask='@RC',display=display)
+ # get 2D histogram of populations
+ resolution = 4 
+ if auxParams is not None:
+   dimx = auxParams['domainXDim']*2 # since +/- domainXDim
+   dimy = auxParams['domainYDim']*2 # since +/- domainXDim
+   dims = resolution * np.array([dimx,dimy])
+   midx = int( dims[0]/2 ) 
 
-    return Di,JA 
+   #reservoirGap = auxParams['domainXDim'] - auxParams['crowderXDim']
+   crowderDims=[midx - auxParams['crowderXDim']*resolution,
+                   midx + auxParams['crowderXDim']*resolution]
+   print("x=",dims) 
+   print(crowderDims)
 
-##
-## MAIN 
-## 
+ else:
+   dims = None 
+   crowderDims = None 
+   #print("DEBUGGING") 
+   #dummy = bu.CalcProbDist(traj,mask='@RC',
+   #            tMax=1000000, caseName=caseName+"_1M",
+#		display=False,bins=dims)
+#    dummy = bu.CalcProbDist(traj,mask='@RC',
+#                tMax=3000000, caseName=caseName+"_3M",
+#		display=False,bins=dims)
+ prob,d,d,dx,dy = bu.CalcProbDist(traj,mask='@RC',caseName=caseName,display=display,bins=dims)
+
+ #print("WARNING: crowederDim is hard-coded") 
+ #xLimCrowder=[500,1000]
+ areaFrac,Jcrowd,Jreserv =  bu.CalcAverageFlux(
+   prob,
+   D=1,
+   xlims = crowderDims,
+   dx = dx,
+   dy=dy )
+
+ return Di,Jreserv, Jcrowd, areaFrac 
+
+def GetParams(yamlName):
+  with open(yamlName, 'r') as file:                                
+    auxParams = yaml.safe_load(file)
+
+  return auxParams 
+
 
 # reads the default params and those in the yaml file 
 def processYamls(figName,
-        path=path,
-        yamlNamePrefix="*",
-        prefixOptions=None,# can list cellAttr etc to fine tune search 
-        single=False,display=True,warningOnly=False): 
+  path=path,
+  yamlNamePrefix="*",
+  prefixOptions=None,# can list cellAttr etc to fine tune search 
+  single=False,display=True,warningOnly=False): 
+
+  # def. 
+  outCsv = path+figName+".csv"       
 
   # get names
   yamlNamePrefix = yamlNamePrefix.replace(".yaml","")
   if single:
+      outCsv = yamlNamePrefix+"_df.csv"
       yamlNames=[yamlNamePrefix+".yaml"]
   else: 
     globTag = path+"/"+yamlNamePrefix+'*yaml'
@@ -83,10 +129,9 @@ def processYamls(figName,
         
 
   #print(globTag) 
-  #print(yamlNames)
-  
+  print(yamlNames)
   df = pd.DataFrame(
-          columns=["trajName","tag","condVal","D","flux*A","Vol Frac"]
+          columns=["trajName","tag","condVal","D","flux*A(reservoir)","flux*A(crowd)","Vol Frac","Area Frac"]
           ) 
 
   #print(yamlNames[0]) 
@@ -94,9 +139,8 @@ def processYamls(figName,
   for yamlName in yamlNames:
       # open yaml
       #yamlName = path+"/"+yamlName
-      with open(yamlName, 'r') as file:                                
-        auxParams = yaml.safe_load(file)
       # get output name 
+      auxParams = GetParams(yamlName) 
       trajName = auxParams['outName']                   
       #print(trajName) 
 
@@ -119,18 +163,17 @@ def processYamls(figName,
         skipped.append(trajName)
         continue 
       
-      Di,JA = ProcessTraj(trajName,display=display) 
+      Di,JA, JAc, areaFrac = ProcessTraj(trajName,display=display,auxParams=auxParams) 
   
       # add to dataframe 
-      df.loc[len(df.index)] = [trajName, tag, condVal,Di,JA,volFrac]
-  
-  if single:
-      return Di,JA
+      df.loc[len(df.index)] = [trajName, tag, condVal,Di,JA,JAc, volFrac, areaFrac]
   
   print(df)
-  outCsv = path+figName+".csv"       
   print("printed %s"%outCsv)
   df.to_csv(outCsv)               
+
+  if single:
+      return True     
 
   if len(skipped)>0:
     print("The following were skipped ", skipped)
@@ -185,7 +228,9 @@ if __name__ == "__main__":
     elif(arg=="-single"): 
       yamlName=sys.argv[i+1]#
       #Di,JA = processYamls("test.png",yamlName,single =True,display=True)
-      Di,JA = ProcessTraj(yamlName,display=True)
+      #auxParams = GetParams(yamlName) 
+      #ProcessTraj(yamlName,display=True,auxParams=auxParams)
+      processYamls("None","./",yamlName,single=True) # need to run for printing dataframe data
       quit()
 
     elif(arg=="-all"): 

@@ -47,7 +47,10 @@ class Params():
     paramDict["domainXDim"]    = 50  # FOR NOW, KEEP PARTICLES WITHIN 99 for PDB [nm/um] dimensions of domain  
     paramDict["domainYDim"]    = 50  # FOR NOW, KEEP PARTICLES WITHIN 99 for PDB [nm/um] dimensions of domain  
     paramDict["xThresh"]       = None  # 0 keep only the particles on the left side 
-    paramDict["crowderDim"]    = None   # [nm/um] dimensions of domain containing crowders (square)  
+    paramDict["absorbingBoundary"]     = False  # if True, when a particle is within absrbingMargin of the right boundary, it will be moved to the left boundary 
+    paramDict["absorbingMargin"]       = 2
+    paramDict["crowderXDim"]    = None   # [nm/um] dimensions of domain containing crowders (square)  
+    paramDict["crowderYDim"]    = None   # [nm/um] dimensions of domain containing crowders (square)  
     paramDict["nInteg"] = 100  # integration step per cycle
     paramDict["mass"] = 1.0 * dalton  # particle mass 
     paramDict["temperature"] = 298 * kelvin # system temperature [K] 
@@ -57,8 +60,9 @@ class Params():
     self.paramDict = paramDict
      
   def update(self):
-    if self.paramDict["crowderDim"] is None:
+    if self.paramDict["crowderYDim"] is None:
         # set to Y-dim, which should usually be smallest
-        self.paramDict["crowderDim"]=self.paramDict["domainYDim"]
+        self.paramDict["crowderYDim"]=self.paramDict["domainYDim"]
+        self.paramDict["crowderXDim"]=self.paramDict["domainYDim"]
 
 
