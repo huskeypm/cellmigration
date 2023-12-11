@@ -5,11 +5,11 @@ WARNING: use SEEKERNew conda, not openmm-env w pytraj
 ## Workflow
 - Determine your code/data locations on the remote host (faust)
 - in faust.bash, set run directory, runfile, and exec
- export SRC=/home/pkekeneshuskey/source/cellmigration/
- export PATH=$PATH:$SRC
- export EXEC="$PYTHON $SRC/brownian_v4.py"   #  DOUBLE CHECK SINCE THIS GETS UPDATED FREQUENTLY!
- export RUNDIR=/data/pkekeneshuskey/231129/
- export RUNFILE="testrun"  # in RUNDIR  
+    export SRC=/home/pkekeneshuskey/source/cellmigration/
+    export PATH=$PATH:$SRC
+    export EXEC="$PYTHON $SRC/brownian_v4.py"   #  DOUBLE CHECK SINCE THIS GETS UPDATED FREQUENTLY!
+    export RUNDIR=/data/pkekeneshuskey/231129/
+    export RUNFILE="testrun"  # in RUNDIR  
 
 - Do the same for local host (if generating jobs there)  
  export LOCALDIR=/home/pkekeneshuskey/data/231129/
