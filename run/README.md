@@ -1,9 +1,8 @@
-WARNING: for the time being, use SEEKER conda, not openmm-env w pytraj
-SEEKRNew
+# General structions for running jobs on faust 
 
+WARNING: use SEEKERNew conda, not openmm-env w pytraj
 
-
-Workflow
+## Workflow
 - Determine your code/data locations on the remote host (faust)
 - in faust.bash, set run directory, runfile, and exec
  export SRC=/home/pkekeneshuskey/source/cellmigration/
@@ -39,7 +38,21 @@ or, now we can define a 'writeFile'; the contents of which can be cat to a runfi
 
 - create run files and edit 
   cp faust_template.bash 0Xmaster.bash
-  # edit 0Xmaster.bash to point to right file 
+Be sure to edit 0Xmaster.bash to point to right file. Also consider using this to replace and create new run files:
+
+ perl -pe 's/AA/01/g;' faust_template.bash > 01.bash
+ for i in {1..9}; do
+    echo "$i"
+    perl -pe "s/AA/0$i/g;" faust_template.bash > 0${i}_process.bash
+    #sbatch 0${i}_process.bash
+ done
+ for i in {10..20}; do
+    echo "$i"
+    perl -pe "s/AA/$i/g;" faust_template.bash > ${i}_process.bash
+    #sbatch ${i}_process.bash
+ done
+
+
 
 - execute
  sbatch faust_template.sh
@@ -59,20 +72,7 @@ https://colab.research.google.com/drive/1AZdQw3q9cdjF7HGfCZCfOkKR7idzIYLD#scroll
 Launching a buncho jobs 
 
 split_files.pl master 150
-perl -pe 's/AA/01/g;' faust_template.bash > 01.bash
 
-
-
-for i in {1..9}; do
-    echo "$i"
-    perl -pe "s/AA/0$i/g;" faust_template.bash > 0${i}_process.bash
-    #sbatch 0${i}_process.bash
-done
-for i in {10..20}; do
-    echo "$i"
-    perl -pe "s/AA/$i/g;" faust_template.bash > ${i}_process.bash
-    #sbatch ${i}_process.bash
-done
 
 
 find jobs that haven't been run 
