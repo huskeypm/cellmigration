@@ -19,9 +19,11 @@ take the meaning of those numbers with a grain of salt.
 """
 
 import socket
-isKant = False
+notCuda = False
+isKant = False 
 if socket.gethostname()=='kant':
     isKant=True
+    notCuda =True
 
 # if kant installastion
 if isKant:
@@ -42,15 +44,6 @@ import numpy as np
 
 ## INIT 
 import platform as pf
-if pf.system()=='Darwin' or isKant:
-  print("Running on mac; assuming no CUDA")
-  platform = mm.Platform.getPlatformByName('CPU')
-  properties = {}
-else:
-  print("Linux") 
-  platform = mm.Platform.getPlatformByName('CUDA')
-  properties = {'Precision': 'double'}
-
 
 min_per_hour = 60  #
 
@@ -189,6 +182,16 @@ def runBD(
   yamlFile=None
   ): 
   paramDict = params.paramDict
+
+  if pf.system()=='Darwin' or notCuda:
+    print("Running on device without cuda; assuming no CUDA")
+    platform = mm.Platform.getPlatformByName('CPU')
+    properties = {}
+  else:
+    print("Linux") 
+    platform = mm.Platform.getPlatformByName('CUDA')
+    properties = {'Precision': 'double'}
+
 
   if yamlFile is None:
     print("YAML file was not provided - using default parameters.") 
@@ -553,6 +556,11 @@ if __name__ == "__main__":
 
     if(arg=="-printVar"):
       printVariables()
+      quit()
+
+    if(arg=="-cpuOnly"):
+      notCuda=True
+      runBD(display=display,yamlFile=yamlFile)
       quit()
   
 

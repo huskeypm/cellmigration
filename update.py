@@ -19,7 +19,8 @@ def UpdateBoundary(simulation,paramDict,x,nCells,warning=False):
   nMoved = len(moved[0])
   if nMoved < 1: 
     return 0 
-  print("moving %d particle (traversed x=%f)"%(nMoved,absorbing)) 
+  elif nMoved>1:
+    print("moving %d particle (traversed x=%f)"%(nMoved,absorbing)) 
 
   # define interval of lattice points that can accommodate moved particles 
   cellDiam= 2*paramDict["cellRad"] * 0.9 # cells usually fit kind of tight

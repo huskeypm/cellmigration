@@ -77,17 +77,19 @@ def GenerateCrowderLattice(
   Places crowders on a regular lattice with symmetric dimensions 
   """
   print("Placing crowders") 
-  #nRow = int( np.ceil( np.sqrt( nCrowders ) )  )
-  f = float(dims[1]/dims[0])  # h = f*w
-  nw = np.sqrt((1/f) * nCrowders)
-  nw = np.floor(nw)
-  nh = np.floor(nCrowders/nw)
-  nRow = int(nh)
-  nCol = int(nw)
-  #print(nRow,nCol)
-  #print(nCrowders)
+  if nCrowders>1:
+   #nRow = int( np.ceil( np.sqrt( nCrowders ) )  )
+   f = float(dims[1]/dims[0])  # h = f*w
+   nw = np.sqrt((1/f) * nCrowders)
+   nw = np.floor(nw)
+   nh = np.floor(nCrowders/nw)
+   nRow = int(nh)
+   nCol = int(nw)
+   #print(nRow,nCol)
+   #print(nCrowders)
+  else:
+    nRow=nCol=1
   nLattice=nRow*nCol
-
 
   #print(nRow,nLattice) 
   try: 
@@ -95,6 +97,8 @@ def GenerateCrowderLattice(
     height=dims[1]/(nRow-1)
   except:
     width=1e9
+    height=1e9
+
   diam = 2*crowderRad
 
   #print(dims)

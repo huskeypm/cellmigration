@@ -54,3 +54,45 @@ on faust, use
 - after creating the output csv file in the previous step, the results can be processed via google colab
 https://colab.research.google.com/drive/1AZdQw3q9cdjF7HGfCZCfOkKR7idzIYLD#scrollTo=TZf5qh69fbAw
 
+
+.......
+Launching a buncho jobs 
+
+split_files.pl master 150
+perl -pe 's/AA/01/g;' faust_template.bash > 01.bash
+
+
+
+for i in {1..9}; do
+    echo "$i"
+    perl -pe "s/AA/0$i/g;" faust_template.bash > 0${i}_process.bash
+    #sbatch 0${i}_process.bash
+done
+for i in {10..20}; do
+    echo "$i"
+    perl -pe "s/AA/$i/g;" faust_template.bash > ${i}_process.bash
+    #sbatch ${i}_process.bash
+done
+
+
+find jobs that haven't been run 
+-----
+import os;
+import glob
+files = glob.glob('*.yaml')
+
+for file in files:
+  dcd=file.replace('yaml','dcd')
+  if os.path.exists(dcd) is not True:
+    print(file)
+-------
+
+rad > 12 isn't good
+it seems like master is not doing the points I requested - double check 
+crowder_atp_nCrowders9.000000_02.yaml <-- calling error about square rootable
+too many cells 
+figure out how to assemble all of the assembl;ed csv files 
+
+
+
+
