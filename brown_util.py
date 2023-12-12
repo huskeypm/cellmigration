@@ -258,15 +258,17 @@ from scipy.stats import linregress
 def CalcAverageFlux(
     dataSet,
     D=1,
-    xlims = [50,60],
+    barrierLims = [50,60],
+    reservoirLims = [50,60],
     dx = 0.125,
     dy=  0.125,
-    display=True):# need to relate px to nm
+    display=False):# need to relate px to nm
     """
     Calculates flux over region in order to get average values. Considers both crowder location and left reservoir
     dataSet -  # concentration/probability
     D - diffusion coefficient
-    xlims - range in x over which to evaluate D in crowded region
+    barrierLims - range in x over which to evaluate D in crowded region
+    reservoirLims - range in x over which to evaluate D in reservoir region
     dx,dy - resolution in nm per px (currently 1400 px wide for 350 nm domain)
     """
     #data2 = np.outer(-np.arange(100),np.ones(100))
@@ -283,7 +285,7 @@ def CalcAverageFlux(
     outsideMean = np.mean(dataSetCp[dataSetCp >= cutoff ]) # mean outside inclusion
     
     cutoff = 0.1*avgDataSet
-    dataSetCp[dataSetCp < cutoff]= outsideMean   # we apply a more stringent criterion here so that we don't 'zero' out as much of the crowder-->smoother gradients
+    dataSetCp[dataSetCp < cutoff]= 0 # outsideMean   # we apply a more stringent criterion here so that we don't 'zero' out as much of the crowder-->smoother gradients
     
     mask=mask[1:,:] #trim first row to match with diff later
     
@@ -299,13 +301,14 @@ def CalcAverageFlux(
     
     #dataSetCp = gaussian_filter(dataSetCp, sigma=3)
     Dgradc = D*np.diff(dataSetCp,axis=0)  # do verify yhis is the right direction 
-
+ 
     # make out low sampled area (occlusions)
     #print(np.mean(diff))
     J=Dgradc*mask
     #plt.hist(J)
 
     #display=True
+    xlims = barrierLims 
     if display:
       plt.figure()
       fig, axs = plt.subplots(1)
@@ -345,22 +348,26 @@ def CalcAverageFlux(
         fig, axs = plt.subplots(1)
         #subset=Dgradc   # [100:500,50:350]
         axs.pcolormesh(subset.T,cmap='gray')
-        plt.figure()
-
-        plt.plot(dasum)
     
     # look in first 1/4 of plot to find max     
-    daMax = np.argmax(dasum[0:xlims[0]])
-    lims=[daMax,xlims[0]]
+    #upper = int( (xlims[0])/3.) # if slope is -increasing- [happens w ATP], we can get the false limit
+    #daMax = np.argmax(dasum[0:upper])
+    #lims=[daMax,xlims[0]]
+    lims = reservoirLims
     x = np.linspace(lims[0],lims[1],lims[1]-lims[0])
     y = dasum[lims[0]:lims[1]]
     result = linregress(x, y)
     JavgReservoir=result.slope
     
-    print("JavgR ",JavgReservoir," JavgCrowd ", JavgCrowded, " areafrac ", areaFrac)
+    #print("JavgR ",JavgReservoir," JavgCrowd ", JavgCrowded, " areafrac ", areaFrac)
     
+    #display=True
     if display:
-        plt.plot(x, x*result.slope + result.intercept)
+        plt.figure()
+        plt.plot(dasum)
+        plt.plot(x, x*result.slope + result.intercept,label=result.slope)
+        plt.legend(loc=0)
+        plt.gcf().savefig("testsum.png",dpi=300)
     
     
     return areaFrac,JavgCrowded, JavgReservoir

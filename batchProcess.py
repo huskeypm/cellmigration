@@ -86,8 +86,9 @@ def ProcessTraj(caseName,display=False,auxParams=None):
  areaFrac,Jcrowd,Jreserv =  bu.CalcAverageFlux(
    prob,
    D=1,
-   xlims = crowderDims,
-   dx = dx,
+   barrierLims = crowderDims,
+   reservoirLims = [1000,1200],
+   dx=dx,
    dy=dy )
 
  return Di,Jreserv, Jcrowd, areaFrac 
@@ -100,11 +101,15 @@ def GetParams(yamlName):
 
 
 # reads the default params and those in the yaml file 
-def processYamls(figName,
+def processYamls(
+  figName,
   path=path,
   yamlNamePrefix="*",
   prefixOptions=None,# can list cellAttr etc to fine tune search 
   single=False,display=True,warningOnly=False): 
+  """
+  Process all jobs in a directory 
+  """
 
   # def. 
   outCsv = path+figName+".csv"       
@@ -115,7 +120,10 @@ def processYamls(figName,
       outCsv = yamlNamePrefix+"_df.csv"
       yamlNames=[yamlNamePrefix+".yaml"]
   else: 
-    globTag = path+"/"+yamlNamePrefix+'*yaml'
+    globTag = path+"/"+yamlNamePrefix
+    if "yaml" not in globTag:
+      globTag+='*yaml'
+
     try: 
       yamlNames = glob.glob(globTag)
     except:
@@ -129,7 +137,7 @@ def processYamls(figName,
         
 
   #print(globTag) 
-  print(yamlNames)
+  #print(yamlNames)
   df = pd.DataFrame(
           columns=["trajName","tag","condVal","D","flux*A(reservoir)","flux*A(crowd)","Vol Frac","Area Frac"]
           ) 
@@ -192,11 +200,12 @@ Purpose:
  
 Usage:
 """
-  msg+="  %s -fig4/-fig5/-single [yaml/dcdprefix] -all" % (scriptName)
+  msg+="  %s -fig4/-fig5/-single [yaml/dcdprefix] -all -subset [wildcard] " % (scriptName)
   msg+="""
   
  
 Notes:
+ It is helpful to put the subset argument in quotations 
 
 """
   return msg
@@ -235,6 +244,11 @@ if __name__ == "__main__":
 
     elif(arg=="-all"): 
       processYamls("test.png",display=False,warningOnly=True,path="./")
+      quit()
+
+    elif(arg=="-subset"): 
+      yamlPrefix=sys.argv[i+1]#
+      processYamls("subset",display=False,warningOnly=True,path="./", yamlNamePrefix=yamlPrefix)
       quit()
 
   raise RuntimeError("Arguments not understood")
