@@ -6,6 +6,9 @@ import numpy as np
 import matplotlib.pylab as plt
 
 def ProcessGroup(df,key):
+  """
+  Look through dataframe and compute statistics for field 'key'
+  """
   if df.empty:
     raise RuntimeError('DataFrame is empty!')
   sdf = df.loc[(df['tag'] == key)]
@@ -19,6 +22,7 @@ def ProcessGroup(df,key):
   Ds = np.zeros_like(uniqueVals)
   Dstds = np.zeros_like(uniqueVals)
   JAs = np.zeros_like(uniqueVals)
+  JAstds = np.zeros_like(uniqueVals)
   vFs = np.zeros_like(uniqueVals)
 
   for i,uniqueVal in enumerate( uniqueVals ) :
@@ -38,6 +42,7 @@ def ProcessGroup(df,key):
     vstdi = np.std(vals)
     #print(key,uniqueVal,np.mean(Dvals))
     JAs[i]=vi
+    JAstds[i]=vstdi
 
     # flux
     #vals = ssdf['Vol Frac']
@@ -48,7 +53,7 @@ def ProcessGroup(df,key):
     vFs[i]=vi
 
   print(uniqueVals)
-  return uniqueVals,Ds,Dstds, JAs, vFs
+  return uniqueVals,Ds,Dstds, JAs, JAstds,vFs
 
 
 
