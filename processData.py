@@ -7,7 +7,7 @@ import matplotlib.pylab as plt
 
 def ProcessGroup(df,key):
   """
-  Searches dataframe for all instances of tag==key
+  Searches dataframe for all instances of tag==key; performs statistics 
   key - key name or 'all' 
   """
   if df.empty:
@@ -26,6 +26,7 @@ def ProcessGroup(df,key):
   Ds = np.zeros_like(uniqueVals)
   Dstds = np.zeros_like(uniqueVals)
   JAs = np.zeros_like(uniqueVals)
+  JAstds = np.zeros_like(uniqueVals)
   vFs = np.zeros_like(uniqueVals)
 
   for i,uniqueVal in enumerate( uniqueVals ) :
@@ -45,6 +46,7 @@ def ProcessGroup(df,key):
     vstdi = np.std(vals)
     #print(key,uniqueVal,np.mean(Dvals))
     JAs[i]=vi
+    JAstds[i]=vstdi
 
     # flux
     #vals = ssdf['Vol Frac']
@@ -55,7 +57,7 @@ def ProcessGroup(df,key):
     vFs[i]=vi
 
   print(key, uniqueVals)
-  return uniqueVals,Ds,Dstds, JAs, vFs
+  return uniqueVals,Ds,Dstds, JAs, JAstds,vFs
 
 
 
