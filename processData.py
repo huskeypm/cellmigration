@@ -6,9 +6,16 @@ import numpy as np
 import matplotlib.pylab as plt
 
 def ProcessGroup(df,key):
+  """
+  Searches dataframe for all instances of tag==key
+  key - key name or 'all' 
+  """
   if df.empty:
     raise RuntimeError('DataFrame is empty!')
-  sdf = df.loc[(df['tag'] == key)]
+  if key is not 'all':
+    sdf = df.loc[(df['tag'] == key)]
+  else: 
+    sdf == key
 
   # find unique conf Val
   uniqueVals = np.unique( sdf['condVal'] )
@@ -47,12 +54,15 @@ def ProcessGroup(df,key):
     #print(key,uniqueVal,np.mean(Dvals))
     vFs[i]=vi
 
-  print(uniqueVals)
+  print(key, uniqueVals)
   return uniqueVals,Ds,Dstds, JAs, vFs
 
 
 
 def PlotKey(conds,Ds,Dstds,key,color='k',normalize=False,altName=None,mode="D"):
+  """
+  For plotting data from dataframe 
+  """
 
   if normalize:
     print("Assuming middle value is reference")

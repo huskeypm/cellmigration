@@ -40,13 +40,12 @@ or, now we can define a 'writeFile'; the contents of which can be cat to a runfi
   cp faust_template.bash 0Xmaster.bash
 Be sure to edit 0Xmaster.bash to point to right file. Also consider using this to replace and create new run files:
 
- perl -pe 's/AA/01/g;' faust_template.bash > 01.bash
  for i in {1..9}; do
     echo "$i"
     perl -pe "s/AA/0$i/g;" faust_template.bash > 0${i}_process.bash
     #sbatch 0${i}_process.bash
  done
- for i in {10..20}; do
+ for i in {10..36}; do
     echo "$i"
     perl -pe "s/AA/$i/g;" faust_template.bash > ${i}_process.bash
     #sbatch ${i}_process.bash
@@ -76,17 +75,10 @@ split_files.pl master 150
 
 
 find jobs that haven't been run 
------
-import os;
-import glob
-files = glob.glob('*.yaml')
+ check missing 
 
-for file in files:
-  dcd=file.replace('yaml','dcd')
-  if os.path.exists(dcd) is not True:
-    print(file)
--------
 
+Notes: 
 rad > 12 isn't good
 it seems like master is not doing the points I requested - double check 
 crowder_atp_nCrowders9.000000_02.yaml <-- calling error about square rootable

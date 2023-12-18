@@ -238,9 +238,7 @@ def runBD(
 
   newCrowderPos = np.shape(crowderPos)[0]
   if (newCrowderPos != nCrowders):
-    print("Not sure if i need this") 
-    raise RuntimeError("WARNING: increasing nCrowders to the nearest 'square-rootable' value: %d"
-            %newCrowderPos)
+    raise RuntimeError("WARNING: we did not get the same number of crowder positions as requested",newCrowderPos,nCrowders)
     nCrowders = newCrowderPos 
 
   # cells first, then crowders
