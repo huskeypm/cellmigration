@@ -15,7 +15,7 @@ def ProcessGroup(df,key):
   if key is not 'all':
     sdf = df.loc[(df['tag'] == key)]
   else: 
-    sdf == key
+    sdf = key
 
   # find unique conf Val
   uniqueVals = np.unique( sdf['condVal'] )
