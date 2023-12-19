@@ -12,7 +12,7 @@ xPotential: false
 xScale: 5.0
 #xThresh: 35  # positive side of crowder dim + some extra
 yPotential: false
-yScale: 20
+yScale: 0    # leave as zero for masteripynb
 
 containmentPotential: square
 crowderXDim: 50
