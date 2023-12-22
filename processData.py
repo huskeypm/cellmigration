@@ -12,7 +12,7 @@ def ProcessGroup(df,key):
   """
   if df.empty:
     raise RuntimeError('DataFrame is empty!')
-  if key is not 'all':
+  if key not in 'all':
     sdf = df.loc[(df['tag'] == key)]
   else: 
     sdf = key
