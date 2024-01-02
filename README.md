@@ -17,8 +17,7 @@ For the time being, the cells (mobile) are labeled with the atom @RC, while the 
 
 # Getting started
 <a name="start"></a>
-- Refer to https://colab.research.google.com/drive/1Txu8ufScId-AqEvYnLM-yJx1kzMM_256?usp=sharing for a colab notebook that can quickly get you started
-- The notebook is also copied here: conda_openmm_pytraj.ipynb
+- Refer to the notebook conda_openmm_pytraj.ipynb quickly get you started (can launch directly from github) 
 
 
 <a name="install"></a>

@@ -61,7 +61,7 @@ def ProcessGroup(df,key):
 
 
 
-def PlotKey(conds,Ds,Dstds,key,color='k',normalize=False,altName=None,mode="D"):
+def PlotKey(conds,Ds,Dstds,key,color='k',style='-',normalize=False,altName=None,mode="D"):
   """
   For plotting data from dataframe 
   """
@@ -80,7 +80,7 @@ def PlotKey(conds,Ds,Dstds,key,color='k',normalize=False,altName=None,mode="D"):
     yvals = Ds
     normed=""
 
-  plt.plot(xvals,yvals,color+'-')
+  plt.plot(xvals,yvals,color+style) 
 
   err = Dstds # watning, need to do error ppropagation for normalized
   plt.fill_between(
