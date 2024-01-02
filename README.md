@@ -116,21 +116,25 @@ The framerate parameter is set to #/min 1 fr/90s
 The distance units in the code are assumed to be [um] though openmm assumes [nm]
 The friction parameter was adjusted s.t. the MSD at the last frame was close to the expt value
 
-### generating jobs for faust
-Use master.ipynb on faust 
+### Data/figures for paper
+These routines generate input files for jobs that can be run on an HPC like faust. Roughly speaking:
+* Use master.ipynb to generate input files (via [master](https://github.com/huskeypm/cellmigration/blob/main/master.ipynb))
+* Submit input files on faust
+* Process job data via batchProcess.py
+* Analyze data using [migration paper](https://github.com/huskeypm/cellmigration/blob/main/migration_paper.ipynb)
+
+See README.md in ./run/ for more details. 
 
 ## TODO
-- Can't get particle packing greater than 9/check that effectiveDim is helpful 
-- ATP gradient is small
-- Can we restrict particles to be in boundary left of the box 
-- fermi dirac potential from Y 
+- DONE Can't get particle packing greater than 9/check that effectiveDim is helpful 
+- DONE ATP gradient is small
+- DONE Can we restrict particles to be in boundary left of the box 
+- CANCEL fermi dirac potential from Y 
 - RESOLVED There is some kind of problem with the z-constraint. Compare brown_wnonbond.py z coordinates relative to openmuller.py in the tests directory 
 - CANCEL PBCs in Y direction should be added 
 - DONE implement flux calculation 
 - DONE piecewise continuous functions? (this doesn't appear to be supported 
 - DONE program fails with crowderDim>100
-
-
 
 ## Previous 
 - Old notes are contained in README_v1.md
