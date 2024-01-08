@@ -75,7 +75,7 @@ split_files.pl master 150
 
 
 find jobs that haven't been run 
- check missing 
+ checkMissing.py
 
 
 Notes: 
