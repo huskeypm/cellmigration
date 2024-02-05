@@ -42,23 +42,25 @@ or, now we can define a 'writeFile'; the contents of which can be cat to a runfi
 ```
 
 - create run files and edit
-  ```
-  cp faust_template.bash 0Xmaster.bash
-```  
-Be sure to edit 0Xmaster.bash to point to right file. Also consider using this to replace and create new run files:
 ```
+  cp faust_template.bash 0Xmaster.bash
+```
+
+Be sure to edit 0Xmaster.bash to point to right file. Also consider using this to replace and create new run files:
+
+<verbatim>
  for i in {1..9}; do
     echo "$i"
     perl -pe "s/AA/0$i/g;" faust_template.bash > 0${i}_process.bash
-    #sbatch 0${i}_process.bash
+    echo "sbatch 0${i}_process.bash"
  done
  
  for i in {10..36}; do
     echo "$i"
     perl -pe "s/AA/$i/g;" faust_template.bash > ${i}_process.bash
-    #sbatch ${i}_process.bash
+    echo "sbatch ${i}_process.bash"
  done
-```
+</verbatim>
 
 
 - execute
