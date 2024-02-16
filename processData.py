@@ -9,6 +9,8 @@ def ProcessGroup(df,key):
   """
   Searches dataframe for all instances of tag==key; performs statistics 
   key - key name or 'all' 
+
+  Current returns 'reservoir' flux 
   """
   if df.empty:
     raise RuntimeError('DataFrame is empty!')
@@ -50,7 +52,7 @@ def ProcessGroup(df,key):
 
     # flux
     #vals = ssdf['Vol Frac']
-    vals = ssdf['Area Frac']
+    vals = ssdf['Area Frac'] # based on the pmf from crowders. not to be trusted if crowders/cells have significant interactions 
     vi = np.mean(vals)
     vstdi = np.std(vals)
     #print(key,uniqueVal,np.mean(Dvals))
