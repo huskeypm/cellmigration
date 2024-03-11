@@ -2,6 +2,7 @@ import matplotlib.pylab as plt
 import numpy as np
 import trackpy as tp 
 from matplotlib import rcParams
+import pandas as pd
 
 
 def TrialParams(frames,
@@ -41,14 +42,14 @@ def DoTracking(frames,diameter=41,minmass=1e2):
     return fb
 
 def DoMSD(
-          fb,
-          maxDist=10, # maximum displacement between frames in pixel
-          maxMissFrame=200, # allowed number of frames a particle can disappear
-          minFrame=50, # minimum number of frames a trajectory needs to last
-          name=None, # specify file name if to save trajectory figure
-          pixelSize=1.63, # image pixel size in micron/pixel, specific for each scope and lens (Cytiva: 0.65)
-          frameRate=1/180, # image acquisition rate in frames/sec
-          max_lagtime=100, # intervals of frames out to which MSD is computed
+    fb,
+    maxDist=10, # maximum displacement between frames in pixel
+    maxMissFrame=200, # allowed number of frames a particle can disappear
+    minFrame=50, # minimum number of frames a trajectory needs to last
+    name=None, # specify file name if to save trajectory figure
+    pixelSize=1.63, # image pixel size in micron/pixel, specific for each scope and lens (Cytiva: 0.65)
+    frameRate=1/180, # image acquisition rate in frames/sec
+    max_lagtime=100, # intervals of frames out to which MSD is computed
          ):
     """
     Gets MSD from tracked cells
