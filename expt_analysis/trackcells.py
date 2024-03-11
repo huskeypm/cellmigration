@@ -163,12 +163,16 @@ def CalcDistances(t1):
     return dists,xdists
 
 def ProcessFrames(
+  frames,
   downsampleRate = 0,
   crop = False,
   thresh=True
   ):
   """
   Downsample, crop and threshold image
+  - frames: tiff file
+  - downsampleRate: take every nth frame if >0
+  - threshold: hardocded 
   """
 
   if downsampleRate>1:
