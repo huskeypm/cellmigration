@@ -313,7 +313,7 @@ def runBD(
   # define arbitrary pdb
   nm_to_Ang=10
   sp_Ang = startingPositions*nm_to_Ang # default is nm in program, but pdb/dcd use Ang     
-  import pdb
+  import pdb_antiquated as pdb
   pdb.genPDBWrapper(pdbFileName,nCells,nCrowders,sp_Ang)
   #calc.genPDBWrapper(pdbFileName,nTot,startingPositions)
   # add to openmm
