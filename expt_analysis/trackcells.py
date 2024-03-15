@@ -166,14 +166,15 @@ def CalcDistances(t1):
 def ProcessFrames(
   frames,
   downsampleRate = 0,
-  crop = False,
-  thresh=True
+  crop = None, 
+  thresh=None
   ):
   """
   Downsample, crop and threshold image
   - frames: tiff file
   - downsampleRate: take every nth frame if >0
-  - threshold: hardocded 
+  - threshold: None or int
+  - crop: None or [[x1,x2],[y1,y2]]
   """
 
   if downsampleRate>1:
@@ -182,15 +183,17 @@ def ProcessFrames(
     downsampled = frames
 
 
-  if crop:
-    cropped = downsampled[:,800:1100,800:1100]
+  if crop is not None:
+    #cropped = downsampled[:,800:1100,800:1100]
+    xs, ys = crop
+    cropped = downsampled[:,xs[0]:xs[1],ys[0]:ys[1]]
     #plt.imshow(cropped[0,:,:])
   else:
     cropped = downsampled
 
-  if thresh:
+  if thresh is not None:
     threshed=np.zeros_like(cropped)
-    threshed[np.where(cropped>105)]=255
+    threshed[np.where(cropped>thresh)]=255
   else:
     threshed=cropped
 
