@@ -90,7 +90,11 @@ def DoMSD(
 
     # plot trajectories
     plt.figure()
+    fig, axs = plt.subplots()      
+    axs.axis('equal')
     tp.plot_traj(t1)
+    axs.axis('equal')
+    
     if name is not None:
         plt.gcf().savefig('traj_{}.png'.format(name) )
 
