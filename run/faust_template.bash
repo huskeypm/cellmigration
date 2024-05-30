@@ -18,7 +18,7 @@ export PYTHON=`which python` # /cm/shared/apps/anaconda3/envs/SEEKR/bin/python
 # assumes paths, etc are correct 
 # See readme 
 export SRC=/home/pkekeneshuskey/source/cellmigration/
-export EXEC="$PYTHON $SRC/brownian_v4.py"
+export EXEC="$PYTHON $SRC/brownian_v5.py"
 export RUNDIR=/data/pkekeneshuskey/231201/                     
 export RUNFILE="01master"  # in RUNDIR  
 
