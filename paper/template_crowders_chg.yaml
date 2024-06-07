@@ -1,11 +1,13 @@
 nCells: 60    
 cellAttr: 0.1
 cellRad: 4
-friction:  25
+cellChg: 5.0 
+friction:  15 
 
 crowderAttr: 0.1
-nCrowders: 18 
+nCrowders: 1  
 crowderRad: 10. 
+crowderChg:  5.0 
 states: false
 tag: nCells
 xPotential: false
@@ -23,5 +25,5 @@ domainXDim: 175
 domainYDim: 100  # 55
 
 # simulation 
-nUpdates: 2500000
-outName: template
+nUpdates: 25000
+outName: crwchg

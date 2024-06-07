@@ -44,7 +44,7 @@ class Params():
     paramDict["K20"] = 1000.  # rate for 0->1 transition in states.py (see that file for more info)   
 
     # system params (can probably leave these alone in most cases
-    paramDict["domainXDim"]    = 50  # FOR NOW, KEEP PARTICLES WITHIN 99 for PDB [nm/um] dimensions of domain  
+    paramDict["domainXDim"]    = 50  # FOR NOW, KEEP PARTICLES WITHIN 99 (e.g. 2xdomainXDim) for PDB [nm/um] dimensions of domain  
     paramDict["domainYDim"]    = 50  # FOR NOW, KEEP PARTICLES WITHIN 99 for PDB [nm/um] dimensions of domain  
     paramDict["xThresh"]       = None  # 0 keep only the particles on the left side 
     paramDict["absorbingBoundary"]     = False  # if True, when a particle is within absrbingMargin of the right boundary, it will be moved to the left boundary 

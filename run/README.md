@@ -40,6 +40,7 @@ or, now we can define a 'writeFile'; the contents of which can be cat to a runfi
   cp faust_template.bash 0Xmaster.bash
 Be sure to edit 0Xmaster.bash to point to right file. Also consider using this to replace and create new run files:
 
+```
  for i in {1..9}; do
     echo "$i"
     perl -pe "s/AA/0$i/g;" faust_template.bash > 0${i}_process.bash
@@ -50,32 +51,44 @@ Be sure to edit 0Xmaster.bash to point to right file. Also consider using this t
     perl -pe "s/AA/$i/g;" faust_template.bash > ${i}_process.bash
     #sbatch ${i}_process.bash
  done
-
+```
 
 
 - execute
+```
  sbatch faust_template.sh
+```
 
 - jobs can be processed using batchProcess.py (from dir where files were run): 
- python /home/pkekeneshuskey/source/cellmigration/batchProcess.py  -all
+```
+python /home/pkekeneshuskey/source/cellmigration/batchProcess.py  -all
+```
 
 on faust, use 
-  conda activate AmberTools23
-  python -c 'import pytraj'
+```
+conda activate AmberTools23
+python -c 'import pytraj'
+```
 
 - after creating the output csv file in the previous step, the results can be processed via google colab
 https://colab.research.google.com/drive/1AZdQw3q9cdjF7HGfCZCfOkKR7idzIYLD#scrollTo=TZf5qh69fbAw
 
 
 .......
-Launching a buncho jobs 
-
+### Launching a buncho jobs 
+- Before 
+```
 split_files.pl master 150
+```
 
 
-
-find jobs that haven't been run 
- checkMissing.py
+- After 
+-- find jobs that haven't been run 
+```
+python ~/source/cellmigration/run/checkMissing.py | grep single > process 
+split_files.pl process 30
+```
+--  
 
 
 Notes: 

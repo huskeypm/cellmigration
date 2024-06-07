@@ -56,22 +56,22 @@ def ProcessTraj(caseName,display=False,auxParams=None):
  #print("Di %f J %f"%(Di,JA))
 
  # get 2D histogram of populations
- resolution = 4 
+ resolution = 4  # [px/um ]
  if auxParams is not None:
    dimx = auxParams['domainXDim']*2 # since +/- domainXDim
    dimy = auxParams['domainYDim']*2 # since +/- domainXDim
-   dims = resolution * np.array([dimx,dimy])
+   dimsPx = resolution * np.array([dimx,dimy])
    midx = int( dims[0]/2 ) 
 
    #reservoirGap = auxParams['domainXDim'] - auxParams['crowderXDim']
-   crowderDims=[midx - auxParams['crowderXDim']*resolution,
+   crowderDimsPx=[midx - auxParams['crowderXDim']*resolution,
                    midx + auxParams['crowderXDim']*resolution]
-   print("x=",dims) 
-   print(crowderDims)
+   print("x=",dimsPx) 
+   print(crowderDimsPx)
 
  else:
-   dims = None 
-   crowderDims = None 
+   dimsPx = None 
+   crowderDimsPx = None 
    #print("DEBUGGING") 
    #dummy = bu.CalcProbDist(traj,mask='@RC',
    #            tMax=1000000, caseName=caseName+"_1M",
@@ -79,7 +79,7 @@ def ProcessTraj(caseName,display=False,auxParams=None):
 #    dummy = bu.CalcProbDist(traj,mask='@RC',
 #                tMax=3000000, caseName=caseName+"_3M",
 #		display=False,bins=dims)
- prob,d,d,dx,dy = bu.CalcProbDist(traj,mask='@RC',caseName=caseName,display=display,bins=dims)
+ prob,d,d,dx,dy = bu.CalcProbDist(traj,mask='@RC',caseName=caseName,display=display,bins=dimsPx)
 
  #print("WARNING: crowederDim is hard-coded") 
  #xLimCrowder=[500,1000]

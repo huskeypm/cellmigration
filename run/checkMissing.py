@@ -10,7 +10,7 @@ readyToProcess=[]
 for fileType in fileTypes:
   for nameYAML in files:
     name=nameYAML.replace('.yaml',fileType)
-    nameDCD=nameYAML.replace('.yaml',"dcd")          
+    nameDCD=nameYAML.replace('.yaml',".dcd")          
     if os.path.exists(name) is not True:
       print(nameYAML+" does not have " + name )
 
@@ -18,5 +18,5 @@ for fileType in fileTypes:
           readyToProcess.append(nameYAML) 
 
 for name in readyToProcess:
-    print("python ~/source//cellmigration/batchProcess.py -single %s\n"%name)
+    print("python ~/source//cellmigration/batchProcess.py -single %s"%name)
 

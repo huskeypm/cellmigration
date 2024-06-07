@@ -90,7 +90,9 @@ def CalcRDF(traj,
     return maxBin 
 
 def CalcProbDist(
-  traj, mask='@RC',display=False,caseName=None,bins=None,tMax=-1):
+  traj, mask='@RC',display=False,caseName=None,
+    bins=None,   # binds in pixels (usually from px/um conversion) 
+    tMax=-1):
   """
   Computes probability distribution and potential of mean force 
   (via boltzmann inversion) 
