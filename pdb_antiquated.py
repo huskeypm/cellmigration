@@ -1,6 +1,7 @@
 ###                           PDB Generator                             ###
 ###########################################################################
 import numpy as np
+raise RuntimeError("who is using this? need to antiquate") 
 
 def genPDBWrapper(
         pdbFileName,
