@@ -1,6 +1,6 @@
 # General structions for running jobs on faust 
 
-WARNING: use SEEKERNew conda, not openmm-env w pytraj
+WARNING: use SEEKRNew conda, not openmm-env w pytraj
 
 ## Workflow
 - Determine your code/data locations on the remote host (faust)
@@ -62,12 +62,13 @@ Be sure to edit 0Xmaster.bash to point to right file. Also consider using this t
  done
 ```
 
-- execute
+- Execute
 ```
  sbatch faust_template.sh
 ```
 
-- jobs can be processed using batchProcess.py (from dir where files were run):
+- Analysis: 
+-- jobs can be processed using batchProcess.py (from dir where files were run):
 ```
  python /home/pkekeneshuskey/source/cellmigration/batchProcess.py  -all
 ```

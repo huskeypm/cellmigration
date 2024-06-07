@@ -38,6 +38,10 @@ git clone git@github.com:huskeypm/cellmigration.git
 ```
 
 ## To initialize environment 
+- cuda 
+```
+module load cuda11.3/toolkit/11.3.0 # if not already done 
+```
 
 if using conda 
 - Activate env
@@ -63,18 +67,18 @@ source config.bash
 ## Execution 
 - It is recommended to run the brownian .py from the command line via 
 ```
-python3 brownian_v3.py -validation 
+python3 brownian_v5.py -validation 
 ```
 
 - To see the list of parameters used:
 ```
-python3 brownian_v3.py -printVar
+python3 brownian_v5.py -printVar
 ```
 
 
 - The program is customized using parameters that are loaded in 'yaml' format. The syntax for calling the code with FILE.yaml is
 ```
-python3 brownian_v3.py -yamlFile FILE.yaml -run
+python3 brownian_v5.py -yamlFile FILE.yaml -run
 ```
 - Example yaml files are provided in the tests/ directory. Check out the README.md file in that directory for more details. 
 - Run files and README.md for HPC (faust) are available in the ./run subdirectory
