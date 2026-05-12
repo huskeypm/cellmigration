@@ -6,7 +6,7 @@ domainXDim: 140
 domainYDim: 100
 nCrowders: 9   
 crowderRad:  25 # um
-crowderDim: 100 # um
+# currently not used; double check why crowderDim: 100 # um
 crowderAttr: 1.
 effectiveRad: 10 # um 
 
